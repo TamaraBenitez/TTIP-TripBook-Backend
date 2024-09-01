@@ -11,8 +11,8 @@ export enum TripUserStatus {
 
 @Entity('trip_users')
 export class TripUser {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @ManyToOne(() => User, (user) => user.tripUsers)
     @JoinColumn({ name: 'user_id' })
