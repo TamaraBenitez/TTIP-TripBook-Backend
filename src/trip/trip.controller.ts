@@ -20,8 +20,8 @@ export class TripController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tripService.findOne(+id);
+  findOneById(@Param('id') id: string) {
+    return this.tripService.findOneById(id);
   }
 
   @Patch(':id')

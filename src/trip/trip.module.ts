@@ -8,5 +8,6 @@ import { Trip } from './entities/trip.entity';
   imports: [TypeOrmModule.forFeature([Trip])],
   controllers: [TripController],
   providers: [TripService],
+  exports: [TripService]
 })
 export class TripModule { }

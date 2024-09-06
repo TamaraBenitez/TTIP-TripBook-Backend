@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,8 +18,12 @@ export class TripService {
     return await this.tripRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} trip`;
+  async findOneById(id: string) {
+    const trip = await this.tripRepository.findOneBy({ id })
+    if (!trip) {
+      throw new BadRequestException('Trip not found')
+    }
+    return trip
   }
 
   update(id: number, updateTripDto: UpdateTripDto) {

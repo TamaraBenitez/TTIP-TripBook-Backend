@@ -3,15 +3,19 @@ import { TripUserService } from './trip-user.service';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { UpdateTripUserDto } from './dto/update-trip-user.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { TripUser } from './entities/trip-user.entity';
 
 @ApiTags('TripUser')
 @Controller('tripUser')
 export class TripUserController {
   constructor(private readonly tripUserService: TripUserService) { }
 
-  @Post()
-  create(@Body() createTripUserDto: CreateTripUserDto) {
-    return this.tripUserService.create(createTripUserDto);
+  @Post(':userId/:tripId')
+  async createTripUser(
+    @Param('userId') userId: string,
+    @Param('tripId') tripId: string,
+  ): Promise<TripUser> {
+    return this.tripUserService.createTripUser(userId, tripId);
   }
 
   @Get()

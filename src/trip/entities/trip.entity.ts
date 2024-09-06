@@ -23,7 +23,6 @@ export class Trip {
     @Column({ type: 'int', default: 0 })
     numberOfRegistrants: number; // Número de personas inscriptas
 
-
     @Column({ type: 'float', nullable: true })
     latitud: number;
 

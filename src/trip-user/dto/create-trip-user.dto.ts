@@ -1,1 +1,6 @@
-export class CreateTripUserDto {}
+export class CreateTripUserDto {
+
+    userId: string
+    tripId: string
+
+}
