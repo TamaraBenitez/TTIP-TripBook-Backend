@@ -12,14 +12,14 @@ export class UserService {
     return 'This action adds a new user';
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    return await this.userRepository.find();
   }
 
   async findOneById(id: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ id })
     if (!user) {
-      throw new BadRequestException('User not found')
+      throw new BadRequestException('El usuario no existe en la plataforma')
     }
     return user
   }

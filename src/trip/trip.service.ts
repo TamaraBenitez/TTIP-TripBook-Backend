@@ -14,6 +14,10 @@ export class TripService {
     return 'This action adds a new trip';
   }
 
+  async incrementRegistrants(tripId: string): Promise<void> {
+    await this.tripRepository.increment({ id: tripId }, 'numberOfRegistrants', 1);
+  }
+
   async findAll() {
     return await this.tripRepository.find();
   }
@@ -21,7 +25,7 @@ export class TripService {
   async findOneById(id: string) {
     const trip = await this.tripRepository.findOneBy({ id })
     if (!trip) {
-      throw new BadRequestException('Trip not found')
+      throw new BadRequestException('El viaje no existe en la plataforma')
     }
     return trip
   }

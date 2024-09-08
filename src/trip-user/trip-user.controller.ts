@@ -11,11 +11,11 @@ export class TripUserController {
   constructor(private readonly tripUserService: TripUserService) { }
 
   @Post(':userId/:tripId')
-  async createTripUser(
+  async registrationTripUser(
     @Param('userId') userId: string,
     @Param('tripId') tripId: string,
-  ): Promise<TripUser> {
-    return this.tripUserService.createTripUser(userId, tripId);
+  ) {
+    return this.tripUserService.registrationTripUser(userId, tripId);
   }
 
   @Get()

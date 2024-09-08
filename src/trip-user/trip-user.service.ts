@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { UpdateTripUserDto } from './dto/update-trip-user.dto';
 import { TripUser, TripUserStatus } from './entities/trip-user.entity';
@@ -17,34 +17,44 @@ export class TripUserService {
     private readonly tripService: TripService,
   ) { }
 
-  async createTripUser(userId: string, tripId: string): Promise<TripUser> {
+  async registrationTripUser(userId: string, tripId: string) {
     const existingEnrollment = await this.tripUserRepository.findOne({
       where: { user: { id: userId }, trip: { id: tripId } },
     });
 
     if (existingEnrollment) {
-      throw new BadRequestException('The user is already registered for this trip')
+      throw new BadRequestException('El usuario ya esta inscripto en este viaje')
     }
-    const userAndTrip = await this.tripUserRepository.createQueryBuilder('tripUser')
-      .leftJoinAndSelect('tripUser.user', 'user', 'user.id = :userId', { userId })
-      .leftJoinAndSelect('tripUser.trip', 'trip', 'trip.id = :tripId', { tripId })
-      .getOne();
-
-    if (!userAndTrip?.user) {
-      throw new NotFoundException('User not found');
+    const user = await this.userService.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException('El usuario no existe en la plataforma');
     }
 
-    if (!userAndTrip?.trip) {
-      throw new NotFoundException('Trip not found');
+    const trip = await this.tripService.findOneById(tripId);
+    if (!trip) {
+      throw new NotFoundException('El viaje no existe en la plataforma');
     }
-    const tripUser = this.tripUserRepository.create({
-      user: userAndTrip.user,
-      trip: userAndTrip.trip,
-      joinDate: new Date(),
-      status: TripUserStatus.Confirmed,
-    });
 
-    return await this.tripUserRepository.save(tripUser);
+
+    try {
+
+      const tripUser = this.tripUserRepository.create({
+        user: user,
+        trip: trip,
+        joinDate: new Date(),
+        status: TripUserStatus.Confirmed,
+      });
+
+      await this.tripUserRepository.save(tripUser);
+
+      await this.tripService.incrementRegistrants(tripId);
+    }
+    catch (error) {
+      throw new InternalServerErrorException(error)
+    }
+
+
+    return { success: true };
   }
 
   async findAll() {
