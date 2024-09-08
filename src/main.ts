@@ -9,7 +9,6 @@ async function bootstrap() {
     .setTitle('TripBook API')
     .setDescription('The TripBook API description')
     .setVersion('1.0')
-    .addTag('tripbook')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -19,6 +18,8 @@ async function bootstrap() {
       operationsSorter: 'alpha',
     },
   });
+
+  app.enableCors()
 
   await app.listen(3000);
 

@@ -10,9 +10,7 @@ export class TripService {
 
   constructor(@InjectRepository(Trip) private readonly tripRepository: Repository<Trip>) { }
 
-  create(createTripDto: CreateTripDto) {
-    return 'This action adds a new trip';
-  }
+
 
   async incrementRegistrants(tripId: string): Promise<void> {
     await this.tripRepository.increment({ id: tripId }, 'numberOfRegistrants', 1);
@@ -30,11 +28,7 @@ export class TripService {
     return trip
   }
 
-  update(id: number, updateTripDto: UpdateTripDto) {
-    return `This action updates a #${id} trip`;
-  }
 
-  remove(id: number) {
-    return `This action removes a #${id} trip`;
-  }
+
+
 }

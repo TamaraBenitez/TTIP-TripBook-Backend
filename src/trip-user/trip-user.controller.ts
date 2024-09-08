@@ -18,6 +18,12 @@ export class TripUserController {
     return this.tripUserService.registrationTripUser(userId, tripId);
   }
 
+  @Get(':userId/trips')
+  async getTripsByUser(@Param('userId') userId: string) {
+    return this.tripUserService.findTripsByUser(userId);
+  }
+
+
   @Get()
   findAll() {
     return this.tripUserService.findAll();
@@ -28,13 +34,5 @@ export class TripUserController {
     return this.tripUserService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTripUserDto: UpdateTripUserDto) {
-    return this.tripUserService.update(+id, updateTripUserDto);
-  }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tripUserService.remove(+id);
-  }
 }

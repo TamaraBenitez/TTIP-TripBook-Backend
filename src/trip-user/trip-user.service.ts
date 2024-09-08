@@ -61,15 +61,30 @@ export class TripUserService {
     return await this.tripUserRepository.find();
   }
 
+  async findTripsByUser(userId: string) {
+    const trips = await this.tripUserRepository
+      .createQueryBuilder('tripUser')
+      .leftJoinAndSelect('tripUser.trip', 'trip')
+      .where('tripUser.user.id = :userId', { userId })
+      .select([
+        'tripUser.joinDate',
+        'tripUser.status',
+        'trip.startPoint',
+        'trip.endPoint',
+        'trip.startDate',
+        'trip.description',
+        'trip.estimatedCost',
+        'trip.numberOfRegistrants'
+      ])
+      .getMany();
+
+    return trips;
+  }
+
+
   findOne(id: number) {
     return `This action returns a #${id} tripUser`;
   }
 
-  update(id: number, updateTripUserDto: UpdateTripUserDto) {
-    return `This action updates a #${id} tripUser`;
-  }
 
-  remove(id: number) {
-    return `This action removes a #${id} tripUser`;
-  }
 }

@@ -9,10 +9,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class TripController {
   constructor(private readonly tripService: TripService) { }
 
-  @Post()
-  create(@Body() createTripDto: CreateTripDto) {
-    return this.tripService.create(createTripDto);
-  }
+
 
   @Get()
   findAll() {
@@ -24,13 +21,6 @@ export class TripController {
     return this.tripService.findOneById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTripDto: UpdateTripDto) {
-    return this.tripService.update(+id, updateTripDto);
-  }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tripService.remove(+id);
-  }
+
 }
