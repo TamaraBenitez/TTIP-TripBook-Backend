@@ -3,6 +3,7 @@ import { TripService } from './trip.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { UpdateTripDto } from './dto/update-trip.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { TripDetailsResponseDto } from './dto/details-trip.dto';
 
 @ApiTags('Trip')
 @Controller('trip')
@@ -17,7 +18,7 @@ export class TripController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string) {
+  findOneById(@Param('id') id: string): Promise<TripDetailsResponseDto> {
     return this.tripService.findOneById(id);
   }
 
