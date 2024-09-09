@@ -26,16 +26,10 @@ export class TripUserService {
     if (existingEnrollment) {
       throw new BadRequestException('El usuario ya esta inscripto en este viaje')
     }
-    let user;
-    // try{
-    //   user = await this.userService.findOneById(userId);
-    // } catch (error) {
-    //   debugger;
-    //   console.log(error)
-    // }
-    // if (!user) {
-    //   throw new NotFoundException('El usuario no existe en la plataforma');
-    // }
+    const user = await this.userService.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException('El usuario no existe en la plataforma');
+    }
 
     const trip = await this.tripService.findOneById(tripId);
     if (!trip) {

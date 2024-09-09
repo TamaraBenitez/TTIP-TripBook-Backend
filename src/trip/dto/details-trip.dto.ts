@@ -1,4 +1,4 @@
-import { TripUserResponseDto } from "src/trip-user/dto/details-trip-user.dto";
+import { UserDetailsResponseDto } from "src/user/dto/details-user.dto";
 
 export class TripDetailsResponseDto {
     id: string;
@@ -11,5 +11,5 @@ export class TripDetailsResponseDto {
     // latitud: number;
     // longitud: number;
   
-    participants: TripUserResponseDto[];
+    participants: UserDetailsResponseDto[];
   }

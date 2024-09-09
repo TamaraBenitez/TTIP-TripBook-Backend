@@ -40,18 +40,14 @@ export class TripService {
     tripDetails.estimatedCost = trip.estimatedCost;
     tripDetails.numberOfRegistrants = trip.numberOfRegistrants;
 
-    // Map participants
+    // Map participants to UserDetailsResponseDto
     tripDetails.participants = trip.tripUsers.map(tripUser => ({
-      id: tripUser.id,
-      user: {
         id: tripUser.user.id,
         name: tripUser.user.name,
         surname: tripUser.user.surname,
         email: tripUser.user.email,
-        locality: tripUser.user.locality
-      },
-      joinDate: tripUser.joinDate,
-      status: tripUser.status,
+        locality: tripUser.user.locality,
+        province: tripUser.user.province
     }));
     return tripDetails
   }
