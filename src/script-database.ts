@@ -27,7 +27,8 @@ async function mockDataDatabase(): Promise<void> {
       INSERT INTO user (id, name, surname, email, password, age, province, locality, latitud, longitud) VALUES 
       ('${user1Id}', 'Alice', 'Smith', 'alice@example.com', 'password123', 25, 'Neuquén', 'San Carlos de Bariloche', -41.1456, -71.3082),
       ('${user2Id}', 'Bob', 'Johnson', 'bob@example.com', 'password456', 30, 'Mendoza', 'Mendoza Capital', -32.8908, -68.8272),
-      ('${user3Id}', 'Charlie', 'Brown', 'charlie@example.com', 'password789', 28, 'Santa Fe', 'Rosario', -32.9468, -60.6393);
+      ('${user3Id}', 'Charlie', 'Brown', 'charlie@example.com', 'password789', 28, 'Santa Fe', 'Rosario', -32.9468, -60.6393),
+      ('testid1', 'Mock', 'User', 'mockuser@example.com', 'password111', 11, 'La Plata', 'Buenos Aires', -32.9468, -60.6393);
     `);
 
     // Genera UUIDs para los viajes
@@ -46,12 +47,14 @@ async function mockDataDatabase(): Promise<void> {
     // Genera UUIDs para las inscripciones de usuarios a viajes
     const tripUser1Id = uuidv4();
     const tripUser2Id = uuidv4();
+    const tripUser3Id = uuidv4();
 
     // Inserta inscripciones en la tabla 'trip_users' con coherencia geográfica usando los UUIDs generados
     await connection.query(`
       INSERT INTO trip_users (id, user_id, trip_id, joinDate, status) VALUES 
       ('${tripUser1Id}', '${user1Id}', '${trip1Id}', '2024-08-31 10:00:00', 'confirmed'),  -- Alice viaja desde Neuquén a Salta
-      ('${tripUser2Id}', '${user2Id}', '${trip2Id}', '2024-08-31 11:00:00', 'cancelled');  -- Bob se inscribió al viaje desde Mendoza a San Juan pero lo canceló
+      ('${tripUser2Id}', '${user2Id}', '${trip2Id}', '2024-08-31 11:00:00', 'cancelled'),  -- Bob se inscribió al viaje desde Mendoza a San Juan pero lo canceló
+      ('${tripUser3Id}', 'testid1', '${trip2Id}', '2024-08-31 11:00:00', 'confirmed');  -- Mock se inscribió al viaje desde Mendoza a San Juan pero lo canceló
     `);
 
     console.log('Datos insertados correctamente.');
