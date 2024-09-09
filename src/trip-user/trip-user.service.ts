@@ -17,7 +17,8 @@ export class TripUserService {
     private readonly tripService: TripService,
   ) { }
 
-  async registrationTripUser(userId: string, tripId: string) {
+  async registrationTripUser(createTripUserDto: CreateTripUserDto) {
+    const { userId, tripId } = createTripUserDto;
     const existingEnrollment = await this.tripUserRepository.findOne({
       where: { user: { id: userId }, trip: { id: tripId } },
     });
@@ -25,10 +26,16 @@ export class TripUserService {
     if (existingEnrollment) {
       throw new BadRequestException('El usuario ya esta inscripto en este viaje')
     }
-    const user = await this.userService.findOneById(userId);
-    if (!user) {
-      throw new NotFoundException('El usuario no existe en la plataforma');
-    }
+    let user;
+    // try{
+    //   user = await this.userService.findOneById(userId);
+    // } catch (error) {
+    //   debugger;
+    //   console.log(error)
+    // }
+    // if (!user) {
+    //   throw new NotFoundException('El usuario no existe en la plataforma');
+    // }
 
     const trip = await this.tripService.findOneById(tripId);
     if (!trip) {
