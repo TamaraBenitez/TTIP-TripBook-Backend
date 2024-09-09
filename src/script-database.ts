@@ -40,7 +40,7 @@ async function mockDataDatabase(): Promise<void> {
     await connection.query(`
       INSERT INTO trip (id, startPoint, endPoint, startDate, description, estimatedCost, numberOfRegistrants, latitud, longitud) VALUES 
       ('${trip1Id}', 'Neuquén', 'Salta', '2024-09-15','Explora la belleza del norte.', 800000.00, 1, -38.9516, -68.0591),
-      ('${trip2Id}', 'Mendoza', 'San Juan', '2024-10-01','Descubre los paisajes cuyanos.', 17351.00, 0, -32.8894, -68.8458),
+      ('${trip2Id}', 'Mendoza', 'San Juan', '2024-10-01','Descubre los paisajes cuyanos.', 17351.00, 1, -32.8894, -68.8458),
       ('${trip3Id}', 'Santa Fe', 'Buenos Aires', '2024-11-05','Viaje hacia la ciudad mágica.', 86178.00, 0, -31.6325, -60.7004);
     `);
 
@@ -54,7 +54,7 @@ async function mockDataDatabase(): Promise<void> {
       INSERT INTO trip_users (id, user_id, trip_id, joinDate, status) VALUES 
       ('${tripUser1Id}', '${user1Id}', '${trip1Id}', '2024-08-31 10:00:00', 'confirmed'),  -- Alice viaja desde Neuquén a Salta
       ('${tripUser2Id}', '${user2Id}', '${trip2Id}', '2024-08-31 11:00:00', 'cancelled'),  -- Bob se inscribió al viaje desde Mendoza a San Juan pero lo canceló
-      ('${tripUser3Id}', 'testid1', '${trip2Id}', '2024-08-31 11:00:00', 'confirmed');  -- Mock se inscribió al viaje desde Mendoza a San Juan pero lo canceló
+      ('${tripUser3Id}', 'testid1', '${trip2Id}', '2024-08-31 11:00:00', 'confirmed');  -- Mock se inscribió al viaje desde Mendoza a San Juan
     `);
 
     console.log('Datos insertados correctamente.');
