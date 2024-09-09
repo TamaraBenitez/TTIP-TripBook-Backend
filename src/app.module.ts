@@ -14,6 +14,7 @@ import { TripUserModule } from './trip-user/trip-user.module';
     database: "db_tripbook",
     autoLoadEntities: true,
     synchronize: true,
+    logger: 'debug' // <--- Add this line in options object
   }), TripModule, TripUserModule,],
   controllers: [],
   providers: [],
