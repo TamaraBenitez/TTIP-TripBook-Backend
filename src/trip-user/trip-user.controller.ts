@@ -10,12 +10,9 @@ import { TripUser } from './entities/trip-user.entity';
 export class TripUserController {
   constructor(private readonly tripUserService: TripUserService) { }
 
-  @Post(':userId/:tripId')
-  async registrationTripUser(
-    @Param('userId') userId: string,
-    @Param('tripId') tripId: string,
-  ) {
-    return this.tripUserService.registrationTripUser(userId, tripId);
+  @Post()
+  async registrationTripUser(@Body() createTripUserDto: CreateTripUserDto) {
+    return this.tripUserService.registrationTripUser(createTripUserDto);
   }
 
   @Get(':userId/trips')
