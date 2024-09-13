@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { TripService } from 'src/trip/trip.service';
+import { ListTripResponseDto } from 'src/trip/dto/list-trip.dto';
 
 @Injectable()
 export class TripUserService {
@@ -17,7 +18,8 @@ export class TripUserService {
     private readonly tripService: TripService,
   ) { }
 
-  async registrationTripUser(userId: string, tripId: string) {
+  async registrationTripUser(createTripUserDto: CreateTripUserDto) {
+    const { userId, tripId } = createTripUserDto;
     const existingEnrollment = await this.tripUserRepository.findOne({
       where: { user: { id: userId }, trip: { id: tripId } },
     });
@@ -61,14 +63,15 @@ export class TripUserService {
     return await this.tripUserRepository.find();
   }
 
-  async findTripsByUser(userId: string) {
-    const trips = await this.tripUserRepository
+  async findTripsByUser(userId: string): Promise<ListTripResponseDto[]>{
+    var trips = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
       .where('tripUser.user.id = :userId', { userId })
       .select([
         'tripUser.joinDate',
         'tripUser.status',
+        'trip.id',
         'trip.startPoint',
         'trip.endPoint',
         'trip.startDate',
@@ -77,8 +80,20 @@ export class TripUserService {
         'trip.numberOfRegistrants'
       ])
       .getMany();
+    const ret = trips.map((tu)=>{
+      const tripDto = new ListTripResponseDto();
+      tripDto.id = tu.trip.id;
+      tripDto.startPoint = tu.trip.startPoint;
+      tripDto.endPoint = tu.trip.endPoint;
+      tripDto.startDate = tu.trip.startDate;
+      tripDto.description = tu.trip.description;
+      tripDto.estimatedCost = tu.trip.estimatedCost;
+      tripDto.numberOfRegistrants = tu.trip.numberOfRegistrants;
+      return tripDto
+    }) 
 
-    return trips;
+
+    return ret;
   }
 
 
