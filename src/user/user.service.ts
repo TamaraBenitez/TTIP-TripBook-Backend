@@ -8,9 +8,14 @@ import { ListTripResponseDto } from 'src/trip/dto/list-trip.dto';
 
 @Injectable()
 export class UserService {
+
   constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) { }
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async createUser(createUserDto: CreateUserDto) {
+    return await this.userRepository.save(createUserDto)
+  }
+
+  async findOneByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOneBy({ email })
   }
 
   async findAll() {
@@ -27,10 +32,10 @@ export class UserService {
 
   async getUserTrips(id: string): Promise<Array<ListTripResponseDto>> {
     const user = await this.userRepository.findOne({
-      where: { id: id }, 
+      where: { id: id },
       relations: ['tripUsers', 'tripUsers.trip'],
     });
-    
+
     //map trips to ListTripResponseDtos
     const trips = user.tripUsers.map(tu => {
       const tripDto = new ListTripResponseDto();
