@@ -4,6 +4,8 @@ import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { plainToInstance } from 'class-transformer';
+import { UserResponseDto } from 'src/trip-user/dto/user.dto';
 
 
 @Injectable()
@@ -11,7 +13,7 @@ export class AuthService {
 
     constructor(private readonly usersService: UserService, private readonly jwtService: JwtService) { }
     async register(registerDto: RegisterDto) {
-        console.log(registerDto)
+
         const { name, surname, email, password, age, province, locality, latitud, longitud } = registerDto
         const user = await this.usersService.findOneByEmail(email)
 
@@ -34,7 +36,8 @@ export class AuthService {
         await this.usersService.createUser(createData)
         const userCreated = await this.usersService.findOneByEmail(email)
 
-        return userCreated
+        const userResponse = plainToInstance(UserResponseDto, userCreated, { excludeExtraneousValues: true })
+        return userResponse
     }
 
 
