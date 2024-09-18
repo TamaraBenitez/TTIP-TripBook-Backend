@@ -21,10 +21,10 @@ export class User {
     @Column()
     age: number
 
-    @Column()
+    @Column({ nullable: true })
     province: string
 
-    @Column()
+    @Column({ nullable: true })
     locality: string
 
     @Column({ type: 'float', nullable: true })
@@ -32,6 +32,9 @@ export class User {
 
     @Column({ type: 'float', nullable: true })
     longitud: number;
+
+    @Column({ default: false })
+    isValidated: boolean;
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.user)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser

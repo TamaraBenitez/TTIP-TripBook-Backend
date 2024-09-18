@@ -3,6 +3,7 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TripModule } from './trip/trip.module';
 import { TripUserModule } from './trip-user/trip-user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [UserModule, TypeOrmModule.forRoot({
@@ -15,7 +16,7 @@ import { TripUserModule } from './trip-user/trip-user.module';
     autoLoadEntities: true,
     synchronize: true,
     logger: 'debug'
-  }), TripModule, TripUserModule,],
+  }), TripModule, TripUserModule, AuthModule,],
   controllers: [],
   providers: [],
 })
