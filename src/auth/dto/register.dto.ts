@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsInt, IsOptional, IsPositive, IsString, MinLength } from 'class-validator';
+import { IsDate, IsDateString, IsEmail, IsOptional, IsPositive, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
 
@@ -12,9 +12,9 @@ export class RegisterDto {
     @IsEmail()
     email: string;
 
-    @IsInt()
-    @IsPositive()
-    age: number
+    @IsDateString()
+    @IsOptional()
+    birthDate: Date
 
     @Transform(({ value }) => value.trim())
     @IsString()

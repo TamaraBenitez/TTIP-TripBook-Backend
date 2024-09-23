@@ -19,7 +19,7 @@ export class User {
     password: string
 
     @Column()
-    age: number
+    birthDate: Date
 
     @Column({ nullable: true })
     province: string
