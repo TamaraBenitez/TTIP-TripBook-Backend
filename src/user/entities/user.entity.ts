@@ -1,6 +1,11 @@
 import { TripUser } from "src/trip-user/entities/trip-user.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
+
+export enum Gender {
+    MALE = 'M',
+    FEMALE = 'F',
+}
 @Entity('user')
 export class User {
     @PrimaryGeneratedColumn('uuid')
@@ -18,6 +23,17 @@ export class User {
     @Column()
     password: string
 
+    @Column()
+    nroDni: string
+
+    @Column()
+    nroTramiteDni: string
+
+
+    @Column({ type: 'enum', enum: Gender }) // Usar el tipo enum
+    gender: Gender; // Campo para el sexo
+
+    @Column({ type: 'date' })
     @Column()
     birthDate: Date
 
