@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TripModule } from './trip/trip.module';
 import { TripUserModule } from './trip-user/trip-user.module';
 import { AuthModule } from './auth/auth.module';
+import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
 
 @Module({
   imports: [UserModule, TypeOrmModule.forRoot({
@@ -16,7 +17,7 @@ import { AuthModule } from './auth/auth.module';
     autoLoadEntities: true,
     synchronize: true,
     logger: 'debug'
-  }), TripModule, TripUserModule, AuthModule,],
+  }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule,],
   controllers: [],
   providers: [],
 })
