@@ -14,7 +14,7 @@ export class AuthService {
     constructor(private readonly usersService: UserService, private readonly jwtService: JwtService) { }
     async register(registerDto: RegisterDto) {
 
-        const { name, surname, email, password, birthDate, province, locality, latitud, longitud } = registerDto
+        const { name, surname, email, password, birthDate, province, locality, latitud, longitud, nroDni, nroTramiteDni, gender } = registerDto
         const user = await this.usersService.findOneByEmail(email)
 
         if (user) {
@@ -30,7 +30,10 @@ export class AuthService {
             province,
             locality,
             latitud,
-            longitud
+            longitud,
+            nroDni,
+            nroTramiteDni,
+            gender
         }
         await this.usersService.createUser(createData)
         const userCreated = await this.usersService.findOneByEmail(email)

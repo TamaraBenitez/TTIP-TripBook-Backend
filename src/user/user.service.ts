@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -23,11 +23,8 @@ export class UserService {
   }
 
   async findOneById(id: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id })
-    if (!user) {
-      throw new BadRequestException('El usuario no existe en la plataforma')
-    }
-    return user
+
+    return await this.userRepository.findOneBy({ id })
   }
 
   async getUserTrips(id: string): Promise<Array<ListTripResponseDto>> {
