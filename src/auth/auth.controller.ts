@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Post, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -21,4 +21,27 @@ export class AuthController {
     login(@Body() loginDto: LoginDto) {
         return this.authService.login(loginDto)
     }
+
+    @Get('verify-email')
+    async verifyEmail(@Query('token') token: string): Promise<string> {
+      const isVerified = await this.authService.verifyEmailToken(token);
+  
+      if (isVerified) {
+        return 'Email successfully verified';
+      } else {
+        throw new BadRequestException('Invalid or expired token');
+      }
+    }
+  
+    @Post('send-verification-email')
+    async sendVerificationEmail(@Body('userId') userId: string): Promise<string> {
+      const user = await this.authService.getUserById(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+  
+      await this.authService.sendVerificationEmail(user);
+      return 'Verification email sent';
+    }
+    
 }

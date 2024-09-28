@@ -6,17 +6,24 @@ import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from 'src/trip-user/dto/user.dto';
-
+import { v4 as uuidv4 } from 'uuid';
+import { NotFoundException } from '@nestjs/common';
+import transporter from 'src/config/nodemailer';
+import { addMinutes } from 'date-fns';
+import { User } from 'src/user/entities/user.entity';
+import { UpdateUserVerificationDto } from './dto/user-verification.dto';
 
 @Injectable()
 export class AuthService {
+    private transporter;
 
-    constructor(private readonly usersService: UserService, private readonly jwtService: JwtService) { }
+    constructor(private readonly usersService: UserService, private readonly jwtService: JwtService) {
+        this.transporter = transporter;
+     }
     async register(registerDto: RegisterDto) {
 
-        const { name, surname, email, password, birthDate, province, locality, latitud, longitud, nroDni, nroTramiteDni, gender } = registerDto
+        const { name, surname, email, password, birthDate, province, locality, latitud, longitud } = registerDto
         const user = await this.usersService.findOneByEmail(email)
-
         if (user) {
             throw new BadRequestException('El usuario ya existe');
         }
@@ -30,10 +37,7 @@ export class AuthService {
             province,
             locality,
             latitud,
-            longitud,
-            nroDni,
-            nroTramiteDni,
-            gender
+            longitud
         }
         await this.usersService.createUser(createData)
         const userCreated = await this.usersService.findOneByEmail(email)
@@ -41,7 +45,6 @@ export class AuthService {
         const userResponse = plainToInstance(UserResponseDto, userCreated, { excludeExtraneousValues: true })
         return userResponse
     }
-
 
     async login(loginDto: LoginDto) {
         const { email, password } = loginDto
@@ -66,4 +69,64 @@ export class AuthService {
             idUser
         }
     }
+    async getUserById(id: string) :Promise<User> {
+        return await this.usersService.findOneById(id);
+    }
+    async generateEmailVerificationToken(userId: string): Promise<string> {
+        const user = await this.usersService.findOneById(userId);
+      
+        if (!user) {
+          throw new NotFoundException('User not found');
+        }
+      
+        const token = uuidv4(); // unique token      
+        const updateDto: UpdateUserVerificationDto = {
+            emailVerificationToken: token,
+            emailVerificationTokenExpires: addMinutes(new Date(), 15),
+          };
+
+        await this.usersService.update(userId, updateDto);
+      
+        return token;
+    }
+    
+    async sendVerificationEmail(user: User): Promise<void> {
+        const token = await this.generateEmailVerificationToken(user.id);
+        const verificationUrl = `http://localhost:5173/verify-email?token=${token}`;
+    
+        const mailOptions = {
+          from: '"TripBook" <your-email@example.com>', // Sender address
+          to: user.email, // Receiver email address
+          subject: 'Verify your email address',
+          text: `Hello ${user.name},\n\nPlease verify your email by clicking the link: ${verificationUrl}\n\nThank you!`,
+          html: `<p>Hello ${user.name},</p><p>Please verify your email by clicking the link below:</p><a href="${verificationUrl}">Verify Email</a><p>Thank you!</p>`, // HTML body
+        };
+    
+        // Send the email
+        await this.transporter.sendMail(mailOptions);
+    }
+
+    async verifyEmailToken(token: string): Promise<boolean> {
+        const user = await this.usersService.findByVerifyToken(token);
+      
+        if (!user) {
+          return false;
+        }
+      
+        // Check if the token has expired
+        if (!user || new Date() > user.emailVerificationTokenExpires) {
+            throw new BadRequestException('Invalid or expired token');
+          }
+      
+        const updateDto: UpdateUserVerificationDto = {
+            emailVerificationToken: null,
+            emailVerificationTokenExpires: null,
+            isEmailVerified: true,
+          };
+      
+        await this.usersService.update(user.id, updateDto);
+      
+        return true;
+    }
+    
 }

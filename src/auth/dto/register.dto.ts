@@ -15,20 +15,6 @@ export class RegisterDto {
     @IsDateString()
     birthDate: Date
 
-    @IsNotEmpty()
-    @IsString()
-    @Length(8, 8)
-    nroDni: string;
-
-    @IsNotEmpty()
-    @IsString()
-    @Length(11, 11)
-    nroTramiteDni: string;
-
-    @IsNotEmpty()
-    @IsString()
-    gender: 'M' | 'F';
-
     @Transform(({ value }) => value.trim())
     @IsString()
     @MinLength(4)
