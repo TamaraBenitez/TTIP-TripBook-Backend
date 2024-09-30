@@ -8,20 +8,29 @@ import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from 'src/trip-user/dto/user.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { NotFoundException } from '@nestjs/common';
-import transporter from 'src/config/nodemailer';
 import { addMinutes } from 'date-fns';
 import { User } from 'src/user/entities/user.entity';
 import { UpdateUserVerificationDto } from './dto/user-verification.dto';
+import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
+
 
 @Injectable()
 export class AuthService {
     private transporter;
-
-    constructor(private readonly usersService: UserService, private readonly jwtService: JwtService) {
-        this.transporter = transporter;
+    
+    constructor(private readonly usersService: UserService, private readonly jwtService: JwtService, private configService: ConfigService) {
+        this.transporter = nodemailer.createTransport({
+            host: this.configService.get<string>("SMTP_HOST"),
+            port: this.configService.get<string>("SMTP_PORT"),
+            secure: this.configService.get<string>("SMTP_SECURE") === "true", 
+            auth: {
+              user: this.configService.get<string>("SMTP_USER"),
+              pass: this.configService.get<string>("SMTP_PASS"),
+            },
+          });
      }
     async register(registerDto: RegisterDto) {
-
         const { name, surname, email, password, birthDate, province, locality, latitud, longitud } = registerDto
         const user = await this.usersService.findOneByEmail(email)
         if (user) {
@@ -92,18 +101,20 @@ export class AuthService {
     
     async sendVerificationEmail(user: User): Promise<void> {
         const token = await this.generateEmailVerificationToken(user.id);
-        const verificationUrl = `http://localhost:5173/verify-email?token=${token}`;
-    
+        const verificationUrl = `${this.configService.get<string>("SMTP_BASEURL")}?token=${token}`;
         const mailOptions = {
-          from: '"TripBook" <your-email@example.com>', // Sender address
-          to: user.email, // Receiver email address
+          from: '"TripBook" <tripbook14@gmail.com>', 
+          to: user.email,
           subject: 'Verify your email address',
           text: `Hello ${user.name},\n\nPlease verify your email by clicking the link: ${verificationUrl}\n\nThank you!`,
           html: `<p>Hello ${user.name},</p><p>Please verify your email by clicking the link below:</p><a href="${verificationUrl}">Verify Email</a><p>Thank you!</p>`, // HTML body
         };
     
-        // Send the email
-        await this.transporter.sendMail(mailOptions);
+        await this.transporter.sendMail(mailOptions,(error, info) =>{
+            if(error){
+                console.log(error)
+            } else console.log(info)
+        }) 
     }
 
     async verifyEmailToken(token: string): Promise<boolean> {
