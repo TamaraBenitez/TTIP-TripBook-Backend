@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
+import { IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
 
@@ -35,4 +35,11 @@ export class RegisterDto {
     @IsString()
     @IsOptional()
     longitud?: number;
+
+
+
+    // @IsOptional()
+    // @IsArray()
+    // @IsString({ each: true })
+    // socialMediaLinks: string[];
 }

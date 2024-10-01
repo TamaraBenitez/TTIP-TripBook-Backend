@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
-import { IsArray, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { Gender } from '../entities/user.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
     @IsNotEmpty()
@@ -14,13 +15,13 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     nroTramiteDni: string;
   
     @IsNotEmpty()
-    @IsString()
-    gender: 'M' | 'F';
+    @IsEnum(Gender) // Use the enum validation
+    gender: Gender;
   
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    socialMediaLinks: string[];
+    // @IsOptional()
+    // @IsArray()
+    // @IsString({ each: true })
+    // socialMediaLinks: string[];
   
     @IsOptional()
     @IsString()

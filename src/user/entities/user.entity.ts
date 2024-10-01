@@ -58,6 +58,9 @@ export class User {
     @Column({ type: 'timestamp', nullable: true })
     emailVerificationTokenExpires: Date;
 
+    // @Column({type: "array", nullable:true})
+    // socialMediaLinks
+
     @OneToMany(() => TripUser, (tripUser) => tripUser.user)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
 
