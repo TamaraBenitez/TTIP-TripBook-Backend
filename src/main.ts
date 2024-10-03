@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +32,8 @@ async function bootstrap() {
   });
 
   app.enableCors()
+
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
   await app.listen(3000);
 

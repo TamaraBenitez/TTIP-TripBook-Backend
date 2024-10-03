@@ -5,6 +5,7 @@ import { TripModule } from './trip/trip.module';
 import { TripUserModule } from './trip-user/trip-user.module';
 import { AuthModule } from './auth/auth.module';
 import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
 @Module({
   imports: [UserModule, TypeOrmModule.forRoot({
@@ -17,7 +18,7 @@ import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
     autoLoadEntities: true,
     synchronize: true,
     logger: 'debug'
-  }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule,],
+  }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule, FileUploadModule,],
   controllers: [],
   providers: [],
 })
