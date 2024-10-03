@@ -1,20 +1,17 @@
 import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { decode as decodeJpeg } from 'jpeg-js';
-import { PNG } from 'pngjs';
-import { RGBLuminanceSource, BinaryBitmap, HybridBinarizer, PDF417Reader } from '@zxing/library';
 import { UserService } from 'src/user/user.service';
-
-const barcodeScanner = new PDF417Reader();
+import { Pdf417DecoderService } from './pdf417-decoder.service';
+import { Gender } from 'src/user/entities/user.entity';
 
 @Controller('pdf417-decoder')
 export class Pdf417DecoderController {
 
-    constructor(private readonly userService: UserService) { }
+    constructor(private readonly userService: UserService, private readonly decoderService: Pdf417DecoderService) { }
     @Post('decode')
     @UseInterceptors(FileInterceptor('file'))
     async decodePdf417(@UploadedFile() file: Express.Multer.File, @Body() body: { userId: string }) {
-        const results = this.detectAndScan(file.buffer, file.mimetype);
+        const results = this.decoderService.detectAndScan(file.buffer, file.mimetype);
         if (!results) {
             return { valid: false, message: 'No se pudo leer el código.' };
         }
@@ -31,15 +28,22 @@ export class Pdf417DecoderController {
         if (!user) {
             return { valid: false, message: 'Usuario no encontrado.' };
         }
-
+        const genderString = data[3];  // This is the string you need to convert
+        let gender: Gender;
+      
+        if (genderString === 'M') {
+          gender = Gender.MALE;
+        } else if (genderString === 'F') {
+          gender = Gender.FEMALE;
+        }
         const discrepancies = [];
-
+            
         // Comparar con los datos del usuario
-        if (tramite !== user.nroTramiteDni) discrepancies.push('trámite');
+        // if (tramite !== user.nroTramiteDni) discrepancies.push('trámite');
         if (apellido !== user.surname.toUpperCase()) discrepancies.push('apellido');
         if (nombre !== user.name.toUpperCase()) discrepancies.push('nombre');
-        if (dni !== user.nroDni) discrepancies.push('DNI');
-
+        // if (dni !== user.nroDni) discrepancies.push('DNI');
+        // if (gender !== user.gender) discrepancies.push('género');
 
         const isValid = discrepancies.length === 0;
 
@@ -47,33 +51,4 @@ export class Pdf417DecoderController {
 
     }
 
-    private detectAndScan(fileData: Buffer, mimeType: string) {
-        let rawFileData;
-
-        if (mimeType === 'image/jpeg') {
-            rawFileData = decodeJpeg(fileData);
-        } else if (mimeType === 'image/png') {
-            rawFileData = PNG.sync.read(fileData); // Lee el PNG de esta manera
-        } else {
-            throw new Error('Unsupported file format');
-        }
-
-        try {
-            const len = rawFileData.width * rawFileData.height;
-            const luminancesUint8Array = new Uint8ClampedArray(len);
-
-            for (let i = 0; i < len; i++) {
-                luminancesUint8Array[i] =
-                    ((rawFileData.data[i * 4] + rawFileData.data[i * 4 + 1] * 2 + rawFileData.data[i * 4 + 2]) / 4) &
-                    0xff;
-            }
-
-            const luminanceSource = new RGBLuminanceSource(luminancesUint8Array, rawFileData.width, rawFileData.height);
-            const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
-            return barcodeScanner.decode(binaryBitmap);
-        } catch (err) {
-            console.error('Error Reading Barcode: ', err.message);
-            return null;
-        }
-    }
 }

@@ -5,6 +5,8 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ListTripResponseDto } from 'src/trip/dto/list-trip.dto';
+import { UpdateUserVerificationDto } from 'src/auth/dto/user-verification.dto';
+
 
 @Injectable()
 export class UserService {
@@ -27,6 +29,11 @@ export class UserService {
     return await this.userRepository.findOneBy({ id })
   }
 
+  async findByVerifyToken(token: string): Promise<User>{
+    return await this.userRepository.findOne({
+      where: { emailVerificationToken: token }
+    });
+  }
   async getUserTrips(id: string): Promise<Array<ListTripResponseDto>> {
     const user = await this.userRepository.findOne({
       where: { id: id },
@@ -48,8 +55,9 @@ export class UserService {
     return trips;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserVerificationDto): Promise<User> {
+    await this.userRepository.update(id, updateUserDto);
+    return this.findOneById(id); 
   }
 
   remove(id: number) {

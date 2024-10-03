@@ -5,6 +5,8 @@ import { TripModule } from './trip/trip.module';
 import { TripUserModule } from './trip-user/trip-user.module';
 import { AuthModule } from './auth/auth.module';
 import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from 'config/configuration';
 
 @Module({
   imports: [UserModule, TypeOrmModule.forRoot({
@@ -16,8 +18,11 @@ import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
     database: "db_tripbook",
     autoLoadEntities: true,
     synchronize: true,
-    logger: 'debug'
-  }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule,],
+    logger: 'debug',
+  }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule, ConfigModule.forRoot({
+    load: [configuration],
+    isGlobal: true
+  })],
   controllers: [],
   providers: [],
 })

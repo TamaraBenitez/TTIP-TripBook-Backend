@@ -23,10 +23,10 @@ export class User {
     @Column()
     password: string
 
-    @Column()
+    @Column({ nullable: true, default:null })
     nroDni: string
 
-    @Column()
+    @Column({ nullable: true, default:null })
     nroTramiteDni: string
 
 
@@ -50,7 +50,16 @@ export class User {
     longitud: number;
 
     @Column({ default: false })
-    isValidated: boolean;
+    isEmailVerified: boolean;
+  
+    @Column({ nullable: true })
+    emailVerificationToken: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    emailVerificationTokenExpires: Date;
+
+    // @Column({type: "array", nullable:true})
+    // socialMediaLinks
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.user)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
