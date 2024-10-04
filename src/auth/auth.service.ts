@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
-import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -14,10 +13,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotFoundException } from '@nestjs/common';
 import { addMinutes } from 'date-fns';
 import { User } from 'src/user/entities/user.entity';
-import { UpdateUserVerificationDto } from './dto/user-verification.dto';
+import { UpdateUserEmailVerificationDto } from './dto/user-email-verification.dto';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { FileUploadService } from 'src/file-upload/file-upload.service';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as mime from 'mime-types';
+import { RegisterDto } from './dto/register.dto';
+
+
 
 @Injectable()
 export class AuthService {
@@ -27,6 +32,7 @@ export class AuthService {
     private readonly usersService: UserService,
     private readonly jwtService: JwtService,
     private configService: ConfigService,
+    private readonly fileUploadService: FileUploadService
   ) {
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>('SMTP_HOST'),
@@ -38,74 +44,59 @@ export class AuthService {
       },
     });
   }
-  async register(userDto: CreateUserDto) {
-    const {
-      name,
-      surname,
-      email,
-      password,
-      birthDate,
-      province,
-      locality,
-      latitud,
-      longitud,
-      nroDni,
-      nroTramiteDni,
-      gender,
-      //  socialMediaLinks
-    } = userDto;
-    const user = await this.usersService.findOneByEmail(email);
+  async register(registerDto: RegisterDto, file: Express.Multer.File) {
+
+    const { name, surname, email, password, birthDate, province, locality, latitud, longitud } = registerDto
+    const user = await this.usersService.findOneByEmail(email)
+
     if (user) {
-      throw new BadRequestException('El usuario ya existe');
+        throw new BadRequestException('El usuario ya existe');
     }
+
+    const fileName = await this.fileUploadService.uploadFile(file);
 
     const createData = {
-      name,
-      surname,
-      email,
-      password: await bcrypt.hash(password, 12),
-      birthDate,
-      province,
-      locality,
-      latitud,
-      longitud,
-      nroDni,
-      nroTramiteDni,
-      gender,
-      // socialMediaLinks
-    };
-    await this.usersService.createUser(createData);
-    const userCreated = await this.usersService.findOneByEmail(email);
+        name,
+        surname,
+        email,
+        password: await bcrypt.hash(password, 12),
+        birthDate,
+        province,
+        locality,
+        latitud,
+        longitud,
+        dniImagePath: fileName
+    }
+    await this.usersService.createUser(createData)
+    const userCreated = await this.usersService.findOneByEmail(email)
 
-    const userResponse = plainToInstance(UserResponseDto, userCreated, {
-      excludeExtraneousValues: true,
-    });
-    return userResponse;
+    const userResponse = plainToInstance(UserResponseDto, userCreated, { excludeExtraneousValues: true })
+    return userResponse
+}
+
+async login(loginDto: LoginDto) {
+  const { email, password } = loginDto
+  const user = await this.usersService.findOneByEmail(email)
+  if (!user) {
+      throw new UnauthorizedException('El email es incorrecto')
   }
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
-    const user = await this.usersService.findOneByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('El email es incorrecto');
-    }
+  const isPasswordValid = await bcrypt.compare(password, user.password)
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+      throw new UnauthorizedException('La contraseña es incorrecta')
+  }
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('La contraseña es incorrecta');
-    }
+  const payload = { id: user.id }
+  const idUser = user.id
 
-    const payload = { id: user.id };
-    const idUser = user.id;
-
-    const token = await this.jwtService.signAsync(payload);
-    return {
+  const token = await this.jwtService.signAsync(payload)
+  return {
       token,
       email,
-      idUser,
-    };
+      idUser
   }
+}
   async getUserById(id: string): Promise<User> {
     return await this.usersService.findOneById(id);
   }
@@ -117,7 +108,7 @@ export class AuthService {
     }
 
     const token = uuidv4(); // unique token
-    const updateDto: UpdateUserVerificationDto = {
+    const updateDto: UpdateUserEmailVerificationDto = {
       emailVerificationToken: token,
       emailVerificationTokenExpires: addMinutes(new Date(), 15),
     };
@@ -151,13 +142,12 @@ export class AuthService {
     if (!user) {
       return false;
     }
-
     // Check if the token has expired
     if (!user || new Date() > user.emailVerificationTokenExpires) {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const updateDto: UpdateUserVerificationDto = {
+    const updateDto: UpdateUserEmailVerificationDto = {
       emailVerificationToken: null,
       emailVerificationTokenExpires: null,
       isEmailVerified: true,
@@ -167,4 +157,33 @@ export class AuthService {
 
     return true;
   }
+    async getDniImagePath(userId: string) {
+        try {
+            const user = await this.usersService.findOneById(userId); // Busca el usuario por ID
+
+            if (!user || !user.dniImagePath) {
+                return null; // No hay usuario o no hay imagen
+            }
+
+            const imagePath = path.join(__dirname, '../../uploads', user.dniImagePath);
+
+            // Imprime la ruta para depuración
+            console.log('Ruta de imagen:', imagePath);
+
+            // Verifica si el archivo existe y devuelve la ruta
+            if (fs.existsSync(imagePath)) {
+                let mimeType = mime.lookup(user.dniImagePath) || 'application/octet-stream'; // Obtiene el tipo de contenido
+                if (path.extname(user.dniImagePath) === '.jfif') {
+                    mimeType = 'image/jpeg'; // Asumiendo que .jfif es un JPEG
+                }
+                console.log(mimeType)
+                return { filePath: imagePath, mimeType };
+            } else {
+                return null; // Archivo no encontrado
+            }
+        } catch (error) {
+            console.error('Error al buscar la imagen:', error);
+            throw error;
+        }
+    }
 }

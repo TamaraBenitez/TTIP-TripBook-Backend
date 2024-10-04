@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ListTripResponseDto } from 'src/trip/dto/list-trip.dto';
-import { UpdateUserVerificationDto } from 'src/auth/dto/user-verification.dto';
 
 
 @Injectable()
@@ -55,8 +53,8 @@ export class UserService {
     return trips;
   }
 
-  async update(id: string, updateUserDto: UpdateUserVerificationDto): Promise<User> {
-    await this.userRepository.update(id, updateUserDto);
+  async update(id: string, updatedUser): Promise<User> {
+    await this.userRepository.update(id, updatedUser);
     return this.findOneById(id); 
   }
 

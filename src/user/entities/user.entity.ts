@@ -30,7 +30,7 @@ export class User {
     nroTramiteDni: string
 
 
-    @Column({ type: 'enum', enum: Gender }) // Usar el tipo enum
+    @Column({ type: 'enum', enum: Gender, nullable:true }) // Usar el tipo enum
     gender: Gender; // Campo para el sexo
 
     @Column({ type: 'date' })
@@ -51,6 +51,9 @@ export class User {
 
     @Column({ default: false })
     isEmailVerified: boolean;
+
+    @Column({ default: false })
+    isUserVerified: boolean;
   
     @Column({ nullable: true })
     emailVerificationToken: string;
@@ -60,6 +63,9 @@ export class User {
 
     // @Column({type: "array", nullable:true})
     // socialMediaLinks
+
+    @Column()
+    dniImagePath: string
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.user)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
