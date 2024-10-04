@@ -64,6 +64,9 @@ export class User {
     // @Column({type: "array", nullable:true})
     // socialMediaLinks
 
+    @Column()
+    dniImagePath: string
+
     @OneToMany(() => TripUser, (tripUser) => tripUser.user)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
 
