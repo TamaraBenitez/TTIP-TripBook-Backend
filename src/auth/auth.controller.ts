@@ -3,8 +3,6 @@ import { AuthService } from './auth.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { Pdf417DecoderService } from 'src/pdf417-decoder/pdf417-decoder.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { Gender } from 'src/user/entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
