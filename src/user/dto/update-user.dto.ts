@@ -1,29 +1,46 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
-import { Gender } from '../entities/user.entity';
+import { IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-    @IsNotEmpty()
+    
+    
     @IsString()
-    @Length(8, 8)
-    nroDni: string;
-  
-    @IsNotEmpty()
-    @IsString()
-    @Length(11, 11)
-    nroTramiteDni: string;
-  
-    @IsNotEmpty()
-    @IsEnum(Gender) // Use the enum validation
-    gender: Gender;
-  
-    // @IsOptional()
-    // @IsArray()
-    // @IsString({ each: true })
-    // socialMediaLinks: string[];
-  
     @IsOptional()
+    name: string;
+
     @IsString()
-    dniImage: string; // Path to the uploaded DNI image
+    @IsOptional()
+    surname: string;
+
+    @IsEmail()
+    @IsOptional()
+    email: string;
+
+    @IsDateString()
+    @IsOptional()
+    birthDate: Date
+
+    @Transform(({ value }) => value.trim())
+    @IsString()
+    @MinLength(4)
+    password: string;
+
+    @IsString()
+    @IsOptional()
+    province?: string
+
+    @IsString()
+    @IsOptional()
+    locality?: string
+
+    @IsString()
+    @IsOptional()
+    latitud?: number;
+
+    @IsString()
+    @IsOptional()
+    longitud?: number;
+
 }

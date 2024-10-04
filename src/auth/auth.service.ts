@@ -4,7 +4,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
-import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -14,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { NotFoundException } from '@nestjs/common';
 import { addMinutes } from 'date-fns';
 import { User } from 'src/user/entities/user.entity';
-import { UpdateUserVerificationDto } from './dto/user-verification.dto';
+import { UpdateUserEmailVerificationDto } from './dto/user-email-verification.dto';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
@@ -52,6 +51,7 @@ export class AuthService {
       nroDni,
       nroTramiteDni,
       gender,
+      isUserVerified
       //  socialMediaLinks
     } = userDto;
     const user = await this.usersService.findOneByEmail(email);
@@ -72,6 +72,7 @@ export class AuthService {
       nroDni,
       nroTramiteDni,
       gender,
+      isUserVerified
       // socialMediaLinks
     };
     await this.usersService.createUser(createData);
@@ -117,7 +118,7 @@ export class AuthService {
     }
 
     const token = uuidv4(); // unique token
-    const updateDto: UpdateUserVerificationDto = {
+    const updateDto: UpdateUserEmailVerificationDto = {
       emailVerificationToken: token,
       emailVerificationTokenExpires: addMinutes(new Date(), 15),
     };
@@ -151,13 +152,12 @@ export class AuthService {
     if (!user) {
       return false;
     }
-
     // Check if the token has expired
     if (!user || new Date() > user.emailVerificationTokenExpires) {
       throw new BadRequestException('Invalid or expired token');
     }
 
-    const updateDto: UpdateUserVerificationDto = {
+    const updateDto: UpdateUserEmailVerificationDto = {
       emailVerificationToken: null,
       emailVerificationTokenExpires: null,
       isEmailVerified: true,

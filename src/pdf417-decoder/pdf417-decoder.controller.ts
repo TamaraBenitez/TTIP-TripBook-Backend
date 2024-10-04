@@ -23,12 +23,11 @@ export class Pdf417DecoderController {
         const dni = data[4];
         const fechaNacimiento = data[6];
 
-        // Buscar el usuario en la base de datos
         const user = await this.userService.findOneById(body.userId);
         if (!user) {
             return { valid: false, message: 'Usuario no encontrado.' };
         }
-        const genderString = data[3];  // This is the string you need to convert
+        const genderString = data[3]; 
         let gender: Gender;
       
         if (genderString === 'M') {
@@ -38,15 +37,17 @@ export class Pdf417DecoderController {
         }
         const discrepancies = [];
             
-        // Comparar con los datos del usuario
-        // if (tramite !== user.nroTramiteDni) discrepancies.push('trámite');
+        if (tramite !== user.nroTramiteDni) discrepancies.push('trámite');
         if (apellido !== user.surname.toUpperCase()) discrepancies.push('apellido');
-        if (nombre !== user.name.toUpperCase()) discrepancies.push('nombre');
-        // if (dni !== user.nroDni) discrepancies.push('DNI');
-        // if (gender !== user.gender) discrepancies.push('género');
+        if (nombre !== user.name.split(' ')[0].toUpperCase()) discrepancies.push('nombre');
+        if (dni !== user.nroDni) discrepancies.push('DNI');
+        if (gender !== user.gender) discrepancies.push('género');
 
         const isValid = discrepancies.length === 0;
 
+        if(isValid){
+          await this.userService.update(body.userId, {...user, isUserVerified: true});
+        }
         return { valid: isValid, discrepancies: isValid ? null : discrepancies, results: data };
 
     }

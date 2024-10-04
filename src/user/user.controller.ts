@@ -1,9 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { UpdateUserVerificationDto } from 'src/auth/dto/user-verification.dto';
+import { VerifyUserDto } from './dto/verify-user.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -31,8 +30,8 @@ export class UserController {
   }
 
   @Patch('/verify/:id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserVerificationDto) {
-    return this.userService.update(id, updateUserDto);
+  update(@Param('id') id: string, @Body() verifyUserDto: VerifyUserDto) {
+    return this.userService.update(id, verifyUserDto);
   }
 
   @Delete(':id')

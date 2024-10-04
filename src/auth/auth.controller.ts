@@ -17,34 +17,48 @@ export class AuthController {
     @Post('register')
     @UseInterceptors(FileInterceptor('dniFile'))
     register(@Body() registerDto: { name: string,  surname: string, birthDate: Date, password: string, email: string}, 
-                    @UploadedFile() dniFile: Express.Multer.File
+                    @UploadedFile() dniFile: Express.Multer.File = null
                   ) {
-      const results = this.decoderService.detectAndScan(dniFile.buffer, dniFile.mimetype);
-      if (!results) {
-        return { success: false, message: 'Could not read the DNI code.' };
+      var results;
+      if(dniFile) {
+        results = this.decoderService.detectAndScan(dniFile.buffer, dniFile.mimetype);
       }
-      const data = results.getText().split('@');
-      const tramite = data[0];
-      const apellido = data[1].toUpperCase();
-      const nombre = data[2].split(' ')[0].toUpperCase();
-      const dni = data[4];
-      const fechaNacimiento = data[6];
-      const genderString = data[3]; 
-      let gender: Gender;
-
+      if (dniFile && !results) {
+        throw new BadRequestException('Could not read the bar code. Please upload a clear photo of the code');
+      }
+      var tramite = null;
+      var apellido = null;
+      var nombre = null;
+      var dni = null;
+      var genderString = null;
+      
+      const data = results?.getText().split('@');
+      if(data){
+        tramite = data[0];
+        apellido = data[1].toUpperCase();
+        nombre = data[2].split(' ')[0].toUpperCase();
+        dni = data[4];
+        genderString = data[3]; 
+        // const fechaNacimiento = data[6];
+      }
+      
+      let gender = null;
+      
       if (genderString === 'M') {
         gender = Gender.MALE;
       } else if (genderString === 'F') {
         gender = Gender.FEMALE;
-      }
-      if (registerDto.surname.toUpperCase() !== apellido || registerDto.name.split(' ')[0].toUpperCase() !== nombre) {
-        throw new BadRequestException('El nombre o apellido no coincide con los datos del DNI.');
-      }
+      } 
+      var isUserVerified =  apellido == registerDto.surname.toUpperCase() &&
+                            nombre === registerDto.name.split(' ')[0].toUpperCase()
+                            
+
       const userDto: CreateUserDto = {
         ...registerDto,
         nroDni: dni,
         nroTramiteDni: tramite, 
         gender:gender,
+        isUserVerified: isUserVerified
         // socialMediaLinks: registerDto.socialMediaLinks || []
       };
         return this.authService.register(userDto);
