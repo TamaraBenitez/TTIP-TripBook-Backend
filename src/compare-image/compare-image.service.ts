@@ -5,6 +5,7 @@ import * as canvas from 'canvas';
 import * as path from 'path';
 import { existsSync } from 'fs';
 import { AuthService } from 'src/auth/auth.service';
+import { ImageDescriptorService } from 'src/image-descriptor-mongo/image-descriptor-mongo.service';
 
 // Implementación de node-canvas
 const { Canvas, Image } = canvas;
@@ -43,7 +44,7 @@ faceapi.env.monkeyPatch({
 
 @Injectable()
 export class CompareImageService implements OnModuleInit {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService, private readonly imageDescriptorService: ImageDescriptorService) { }
 
     async onModuleInit() {
         // Cargar modelos al iniciar el módulo
@@ -60,43 +61,29 @@ export class CompareImageService implements OnModuleInit {
         const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
         const userCtx = userCanvas.getContext('2d');
         userCtx.drawImage(userImage, 0, 0);
+        console.log('canvas creado 1')
 
         const detectionsUser = await faceapi
             .detectAllFaces(userCanvas as unknown as HTMLCanvasElement)
             .withFaceLandmarks()
             .withFaceDescriptors();
-
+        console.log('paso 1 deteccion')
         if (!detectionsUser.length) {
             throw new Error('No se detectó ninguna cara en la imagen proporcionada.');
         }
-
-        // Obtener la imagen del DNI desde el servidor
-        const dniImagePath = await this.authService.getDniImagePath(userId);
-        const dniImageExists = existsSync(dniImagePath.filePath);
-        if (!dniImageExists) {
-            throw new Error('No se encontró la imagen del DNI.');
+        console.log('busca descriptor a mongo')
+        const storedDescriptor = await this.imageDescriptorService.findByUserId(userId);
+        if (!storedDescriptor) {
+            return { message: 'Descriptor not found' };
         }
-
-        const dniImage = await canvas.loadImage(dniImagePath.filePath);
-        const dniCanvas = canvas.createCanvas(dniImage.width, dniImage.height);
-        const dniCtx = dniCanvas.getContext('2d');
-        dniCtx.drawImage(dniImage, 0, 0);
-
-        const detectionsDni = await faceapi
-            .detectAllFaces(dniCanvas as unknown as HTMLCanvasElement)
-            .withFaceLandmarks()
-            .withFaceDescriptors();
-
-        if (!detectionsDni.length) {
-            throw new Error('No se detectó ninguna cara en la imagen del DNI.');
-        }
-
+        console.log('obtuvo el descriptor de mongo')
+        const { descriptor } = storedDescriptor
         const userDescriptor = detectionsUser[0].descriptor;
-        const dniDescriptor = detectionsDni[0].descriptor;
-
         // Comparar las dos descripciones faciales
-        const distance = faceapi.euclideanDistance(userDescriptor, dniDescriptor);
+        console.log('empieza comparacion')
+        const distance = faceapi.euclideanDistance(userDescriptor, descriptor);
         const isSamePerson = distance < 0.6;
+        console.log('paso comparacion')
 
         return {
             isSamePerson,
