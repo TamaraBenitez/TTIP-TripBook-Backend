@@ -8,6 +8,7 @@ import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { FileUploadModule } from './file-upload/file-upload.module';
+import { CompareImageController } from './compare-image/compare-image.controller';
 
 @Module({
   imports: [UserModule, TypeOrmModule.forRoot({
@@ -24,7 +25,7 @@ import { FileUploadModule } from './file-upload/file-upload.module';
     load: [configuration],
     isGlobal: true
   })],
-  controllers: [],
+  controllers: [CompareImageController],
   providers: [],
 })
 export class AppModule { }

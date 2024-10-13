@@ -16,6 +16,7 @@ import { FileUploadModule } from 'src/file-upload/file-upload.module';
       signOptions: { expiresIn: '1d' },
     })],
   controllers: [AuthController],
-  providers: [AuthService, Pdf417DecoderService]
+  providers: [AuthService, Pdf417DecoderService],
+  exports: [AuthService]
 })
 export class AuthModule { }
