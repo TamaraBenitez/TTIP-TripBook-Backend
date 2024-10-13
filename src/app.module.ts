@@ -9,6 +9,8 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { CompareImageController } from './compare-image/compare-image.controller';
+import { CompareImageService } from './compare-image/compare-image.service';
+import { CompareImageModule } from './compare-image/compare-image.module';
 
 @Module({
   imports: [UserModule, TypeOrmModule.forRoot({
@@ -24,8 +26,8 @@ import { CompareImageController } from './compare-image/compare-image.controller
   }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule, FileUploadModule, ConfigModule.forRoot({
     load: [configuration],
     isGlobal: true
-  })],
-  controllers: [CompareImageController],
-  providers: [],
+  }), CompareImageModule],
+  controllers: [],
+  providers: [CompareImageService],
 })
 export class AppModule { }
