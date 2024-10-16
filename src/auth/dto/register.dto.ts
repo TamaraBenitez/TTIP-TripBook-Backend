@@ -1,5 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsDateString, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsDateString, IsEmail, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
 
@@ -20,22 +21,28 @@ export class RegisterDto {
     @MinLength(4)
     password: string;
 
+    @Transform(({ value }) => (value === '' ? undefined : value))
     @IsString()
     @IsOptional()
     province?: string
 
+    @Transform(({ value }) => (value === '' ? undefined : value))
     @IsString()
     @IsOptional()
     locality?: string
 
-    @IsString()
+    @Transform(({ value }) => (value === '' ? undefined : value))
+    @IsNumber()
     @IsOptional()
     latitud?: number;
 
-    @IsString()
+    @Transform(({ value }) => (value === '' ? undefined : value))
+    @IsNumber()
     @IsOptional()
     longitud?: number;
 
+    @ApiProperty({ type: 'string', format: 'binary', required: true })
+    dniPhoto?: any;
 
 
     // @IsOptional()

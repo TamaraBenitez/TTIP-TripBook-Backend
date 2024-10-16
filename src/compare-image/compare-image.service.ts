@@ -4,7 +4,7 @@ import * as tf from '@tensorflow/tfjs-node';
 import * as canvas from 'canvas';
 import * as path from 'path';
 import { existsSync } from 'fs';
-import { AuthService } from 'src/auth/auth.service';
+import { UserService } from 'src/user/user.service';
 
 // Implementación de node-canvas
 const { Canvas, Image } = canvas;
@@ -43,7 +43,7 @@ faceapi.env.monkeyPatch({
 
 @Injectable()
 export class CompareImageService implements OnModuleInit {
-    constructor(private readonly authService: AuthService) { }
+    constructor(private readonly userService: UserService) { }
 
     async onModuleInit() {
         // Cargar modelos al iniciar el módulo
@@ -54,9 +54,8 @@ export class CompareImageService implements OnModuleInit {
         console.log('Modelos cargados correctamente.');
     }
 
-    async compareFaces(fileBuffer: Buffer, userId: string) {
-        // Cargar la imagen del usuario desde el archivo
-        const userImage = await canvas.loadImage(fileBuffer);
+    async imageProcessed(file: Express.Multer.File) {
+        const userImage = await canvas.loadImage(file.buffer);
         const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
         const userCtx = userCanvas.getContext('2d');
         userCtx.drawImage(userImage, 0, 0);
@@ -66,36 +65,48 @@ export class CompareImageService implements OnModuleInit {
             .withFaceLandmarks()
             .withFaceDescriptors();
 
+        return detectionsUser
+    }
+
+    async compareFaces(fileBuffer: Buffer, userId: string) {
+        // Cargar la imagen del usuario desde el archivo
+        console.log('ya estoy en compareFaces')
+        const userImage = await canvas.loadImage(fileBuffer);
+        const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
+        const userCtx = userCanvas.getContext('2d');
+        userCtx.drawImage(userImage, 0, 0);
+
+        console.log('iniciando proceso de deteccion')
+        const detectionsUser = await faceapi
+            .detectAllFaces(userCanvas as unknown as HTMLCanvasElement)
+            .withFaceLandmarks()
+            .withFaceDescriptors();
+
         if (!detectionsUser.length) {
             throw new Error('No se detectó ninguna cara en la imagen proporcionada.');
         }
 
+        console.log('finalizo proceso')
+
         // Obtener la imagen del DNI desde el servidor
-        const dniImagePath = await this.authService.getDniImagePath(userId);
-        const dniImageExists = existsSync(dniImagePath.filePath);
-        if (!dniImageExists) {
-            throw new Error('No se encontró la imagen del DNI.');
+        const user = await this.userService.findOneById(userId)
+
+
+        const imageDescriptorBase64 = user.imageDescriptor;
+
+        console.log('userDescriptor64', imageDescriptorBase64)
+
+        if (!imageDescriptorBase64) {
+            throw new Error('No se encontró un descriptor de imagen guardado para el usuario.');
         }
 
-        const dniImage = await canvas.loadImage(dniImagePath.filePath);
-        const dniCanvas = canvas.createCanvas(dniImage.width, dniImage.height);
-        const dniCtx = dniCanvas.getContext('2d');
-        dniCtx.drawImage(dniImage, 0, 0);
-
-        const detectionsDni = await faceapi
-            .detectAllFaces(dniCanvas as unknown as HTMLCanvasElement)
-            .withFaceLandmarks()
-            .withFaceDescriptors();
-
-        if (!detectionsDni.length) {
-            throw new Error('No se detectó ninguna cara en la imagen del DNI.');
-        }
-
+        // Decodificar el descriptor guardado desde base64
+        const buffer = Buffer.from(imageDescriptorBase64, 'base64'); // Decodificar base64 a buffer
+        const userSaveDescriptor = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.length / Float32Array.BYTES_PER_ELEMENT); // Convertir a Float32Array
         const userDescriptor = detectionsUser[0].descriptor;
-        const dniDescriptor = detectionsDni[0].descriptor;
-
+        console.log('userDescriptorDecodificado', userDescriptor)
         // Comparar las dos descripciones faciales
-        const distance = faceapi.euclideanDistance(userDescriptor, dniDescriptor);
+        const distance = faceapi.euclideanDistance(userDescriptor, userSaveDescriptor);
         const isSamePerson = distance < 0.6;
 
         return {
