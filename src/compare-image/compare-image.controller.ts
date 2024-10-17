@@ -10,7 +10,7 @@ export class CompareImageController {
     @UseInterceptors(FileInterceptor('userImage'))
     async compareFace(@UploadedFile() file: Express.Multer.File, @Body('userId') userId: string) {
         try {
-            const result = await this.compareImageService.compareFaces(file.buffer, userId);
+            const result = await this.compareImageService.compareFaces(file, userId);
             return result;
         } catch (error) {
             console.error('Error durante la comparación de imágenes:', error);

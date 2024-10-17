@@ -1,9 +1,8 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import * as faceapi from 'face-api.js';
 import * as tf from '@tensorflow/tfjs-node';
 import * as canvas from 'canvas';
 import * as path from 'path';
-import { existsSync } from 'fs';
 import { UserService } from 'src/user/user.service';
 
 // Implementación de node-canvas
@@ -68,50 +67,40 @@ export class CompareImageService implements OnModuleInit {
         return detectionsUser
     }
 
-    async compareFaces(fileBuffer: Buffer, userId: string) {
-        // Cargar la imagen del usuario desde el archivo
-        console.log('ya estoy en compareFaces')
-        const userImage = await canvas.loadImage(fileBuffer);
-        const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
-        const userCtx = userCanvas.getContext('2d');
-        userCtx.drawImage(userImage, 0, 0);
+    async compareFaces(file: Express.Multer.File, userId: string) {
+        try {
+            // Cargar la imagen del usuario desde el archivo
+            const userImage = await canvas.loadImage(file.buffer);
+            const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
+            const userCtx = userCanvas.getContext('2d');
+            userCtx.drawImage(userImage, 0, 0);
 
-        console.log('iniciando proceso de deteccion')
-        const detectionsUser = await faceapi
-            .detectAllFaces(userCanvas as unknown as HTMLCanvasElement)
-            .withFaceLandmarks()
-            .withFaceDescriptors();
+            const detectionsUser = await this.imageProcessed(file);
+            if (!detectionsUser.length) {
+                throw new Error('No se detectó ninguna cara en la imagen proporcionada.');
+            }
 
-        if (!detectionsUser.length) {
-            throw new Error('No se detectó ninguna cara en la imagen proporcionada.');
+            const user = await this.userService.findOneById(userId);
+            const imageDescriptorBase64 = user.imageDescriptor;
+
+            if (!imageDescriptorBase64) {
+                throw new Error('No se encontró un descriptor de imagen guardado para el usuario.');
+            }
+
+            const buffer = Buffer.from(imageDescriptorBase64, 'base64');
+            const userSaveDescriptor = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.length / Float32Array.BYTES_PER_ELEMENT);
+            const userDescriptor = detectionsUser[0].descriptor;
+
+            const distance = faceapi.euclideanDistance(userDescriptor, userSaveDescriptor);
+            const isSamePerson = distance < 0.6;
+
+            return {
+                isSamePerson,
+                similarity: 1 - distance,
+            };
+        } catch (error) {
+
+            throw new BadRequestException(error.message);
         }
-
-        console.log('finalizo proceso')
-
-        // Obtener la imagen del DNI desde el servidor
-        const user = await this.userService.findOneById(userId)
-
-
-        const imageDescriptorBase64 = user.imageDescriptor;
-
-        console.log('userDescriptor64', imageDescriptorBase64)
-
-        if (!imageDescriptorBase64) {
-            throw new Error('No se encontró un descriptor de imagen guardado para el usuario.');
-        }
-
-        // Decodificar el descriptor guardado desde base64
-        const buffer = Buffer.from(imageDescriptorBase64, 'base64'); // Decodificar base64 a buffer
-        const userSaveDescriptor = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.length / Float32Array.BYTES_PER_ELEMENT); // Convertir a Float32Array
-        const userDescriptor = detectionsUser[0].descriptor;
-        console.log('userDescriptorDecodificado', userDescriptor)
-        // Comparar las dos descripciones faciales
-        const distance = faceapi.euclideanDistance(userDescriptor, userSaveDescriptor);
-        const isSamePerson = distance < 0.6;
-
-        return {
-            isSamePerson,
-            similarity: 1 - distance,
-        };
     }
 }

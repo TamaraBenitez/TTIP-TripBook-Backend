@@ -100,7 +100,7 @@ export class AuthService {
       throw new UnauthorizedException('La contraseña es incorrecta')
     }
 
-    const compareFaces = await this.compareImageService.compareFaces(file.buffer, user.id)
+    const compareFaces = await this.compareImageService.compareFaces(file, user.id)
 
     if (!compareFaces.isSamePerson) {
       throw new UnauthorizedException('Las caras no coinciden');
