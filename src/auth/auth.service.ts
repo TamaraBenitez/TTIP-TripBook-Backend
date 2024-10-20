@@ -56,16 +56,13 @@ export class AuthService {
     }
 
     const fileName = await this.fileUploadService.uploadFile(file);
-    console.log('antes de empezar la deteccion')
     const detectionsUser = await this.compareImageService.imageProcessed(file)
     if (!detectionsUser.length) {
       throw new Error('No se detectó ninguna cara en la imagen proporcionada.');
     }
-    console.log('termino la deteccion')
+
     const userDescriptor = detectionsUser[0].descriptor;
-    console.log('userDescriptor', userDescriptor)
     const userDescriptorBase64 = Buffer.from(new Float32Array(userDescriptor).buffer).toString('base64');
-    console.log('descriptor64', userDescriptorBase64)
     const createData = {
       name,
       surname,
