@@ -54,17 +54,22 @@ export class CompareImageService implements OnModuleInit {
     }
 
     async imageProcessed(file: Express.Multer.File) {
-        const userImage = await canvas.loadImage(file.buffer);
-        const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
-        const userCtx = userCanvas.getContext('2d');
-        userCtx.drawImage(userImage, 0, 0);
+        try {
+            const userImage = await canvas.loadImage(file.buffer);
+            const userCanvas = canvas.createCanvas(userImage.width, userImage.height);
+            const userCtx = userCanvas.getContext('2d');
+            userCtx.drawImage(userImage, 0, 0);
 
-        const detectionsUser = await faceapi
-            .detectAllFaces(userCanvas as unknown as HTMLCanvasElement)
-            .withFaceLandmarks()
-            .withFaceDescriptors();
+            const detectionsUser = await faceapi
+                .detectAllFaces(userCanvas as unknown as HTMLCanvasElement)
+                .withFaceLandmarks()
+                .withFaceDescriptors();
 
-        return detectionsUser
+            return detectionsUser
+        }
+        catch (error) {
+            throw new BadRequestException('No se pudo procesar la imagen.')
+        }
     }
 
     async compareFaces(file: Express.Multer.File, userId: string) {

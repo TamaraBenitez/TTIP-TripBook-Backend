@@ -58,7 +58,7 @@ export class AuthService {
     const fileName = await this.fileUploadService.uploadFile(file);
     const detectionsUser = await this.compareImageService.imageProcessed(file)
     if (!detectionsUser.length) {
-      throw new Error('No se detectó ninguna cara en la imagen proporcionada.');
+      throw new BadRequestException('No se detectó ninguna cara en la imagen proporcionada.');
     }
 
     const userDescriptor = detectionsUser[0].descriptor;
