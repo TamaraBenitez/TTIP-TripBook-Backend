@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TripModule } from './trip/trip.module';
@@ -8,9 +8,11 @@ import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from 'config/configuration';
 import { FileUploadModule } from './file-upload/file-upload.module';
+import { TripCoordinateModule } from './trip-coordinate/trip-coordinate.module';
 
 @Module({
-  imports: [UserModule, TypeOrmModule.forRoot({
+  imports: [
+  TypeOrmModule.forRoot({
     type: "mysql",
     host: "localhost",
     port: 3307,
@@ -20,10 +22,18 @@ import { FileUploadModule } from './file-upload/file-upload.module';
     autoLoadEntities: true,
     synchronize: true,
     logger: 'debug',
-  }), TripModule, TripUserModule, AuthModule, Pdf417DecoderModule,FileUploadModule, ConfigModule.forRoot({
+  }), 
+  ConfigModule.forRoot({
     load: [configuration],
     isGlobal: true
-  })],
+  }),
+  UserModule,
+  forwardRef(() => TripModule),
+  forwardRef(() => TripUserModule),
+  TripCoordinateModule, 
+  AuthModule, 
+  Pdf417DecoderModule,
+  FileUploadModule],
   controllers: [],
   providers: [],
 })

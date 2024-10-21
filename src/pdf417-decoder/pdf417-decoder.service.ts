@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable } from '@nestjs/common';
 import { PDF417Reader, BinaryBitmap, HybridBinarizer, RGBLuminanceSource } from '@zxing/library';
 import { decode as decodeJpeg } from 'jpeg-js';
 import { PNG } from 'pngjs';
 import { existsSync } from 'fs';
 import * as sharp from 'sharp';
+import { UserService } from 'src/user/user.service';
+import { Gender } from 'src/user/entities/user.entity';
 
 const barcodeScanner = new PDF417Reader();
 
@@ -11,7 +13,9 @@ const barcodeScanner = new PDF417Reader();
 export class Pdf417DecoderService {
     private codeReader: PDF417Reader;
 
-    constructor() {
+    constructor(
+        private readonly userService: UserService
+    ) {
         this.codeReader = new PDF417Reader();
     }
 
@@ -80,5 +84,72 @@ export class Pdf417DecoderService {
             console.error('Error Reading Barcode: ', err.message);
             return null;
         }
+    }
+
+    async validateData(results, userId){
+        var nombre;
+        var apellido;
+        var dni;
+        var genderString;
+        var gender: Gender;
+        var fechaNacimiento;
+        const discrepancies = [];
+
+        const user = await this.userService.findOneById(userId);
+            if (!user) {
+                return { valid: false, message: 'Usuario no encontrado.' };
+        }
+        const dniData = results.getText().split('@');
+        const licenseData = results.getText().split('\r\n');
+        const isDni = dniData.length > 1;
+        //DNI Format
+        if(isDni){
+            const tramite = dniData[0];
+            fechaNacimiento = dniData[6];
+            apellido = dniData[1].toUpperCase();
+            nombre = dniData[2].split(' ')[0].toUpperCase();
+            dni = dniData[4];
+            genderString = dniData[3];   
+            
+            if (tramite !== user.nroTramiteDni) discrepancies.push('trámite');
+        
+        //License format    
+        } else if(licenseData.length > 1){
+            const vencimiento = licenseData[9].split('Vto:')[1];
+            fechaNacimiento = licenseData[5];
+            apellido = licenseData[4].toUpperCase();
+            nombre = licenseData[3].split(' ')[0].toUpperCase();
+            dni = licenseData[1];
+            genderString = licenseData[2];   
+
+            const [day, month, year] = vencimiento.split('/').map(Number);
+            const expirationDate = new Date(year, month - 1, day);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if(expirationDate < today){
+                throw new ForbiddenException("Your license has expired. You cannot create a trip.")
+            }
+        }
+      
+        if (genderString === 'M') {
+          gender = Gender.MALE;
+        } else if (genderString === 'F') {
+          gender = Gender.FEMALE;
+        }
+            
+        if (apellido !== user.surname.toUpperCase()) discrepancies.push('apellido');
+        if (nombre !== user.name.split(' ')[0].toUpperCase()) discrepancies.push('nombre');
+        if (user.nroDni && dni !== user.nroDni) discrepancies.push('DNI');
+        if (user.gender && gender !== user.gender) discrepancies.push('género');
+
+        const isValid = discrepancies.length === 0;
+
+        if(isValid && isDni){
+          await this.userService.update(userId, {...user, isUserVerified: true});
+        }
+
+        return { valid: isValid, discrepancies: isValid ? null : discrepancies, results: isDni ? dniData : licenseData }
     }
 }

@@ -1,5 +1,5 @@
-import { IsUUID, IsEnum } from 'class-validator';
-import { TripUserStatus } from '../entities/trip-user.entity';
+import { IsUUID, IsEnum, IsDateString } from 'class-validator';
+import { TripUserStatus, UserRole } from '../entities/trip-user.entity';
 export class CreateTripUserDto {
 
     @IsUUID()
@@ -10,4 +10,10 @@ export class CreateTripUserDto {
   
     @IsEnum(TripUserStatus)
     status: TripUserStatus;  // Status from the TripUserStatus enum
+
+    @IsDateString()
+    joinDate: Date;
+
+    @IsEnum(UserRole)
+    role: UserRole;
 }
