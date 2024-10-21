@@ -78,17 +78,19 @@ export class Pdf417DecoderService {
 
 
     detectAndScan(fileData: Buffer, mimeType: string) {
-        let rawFileData;
+        const decodeMap: { [key: string]: (data: Buffer) => any } = {
+            'image/jpeg': decodeJpeg,
+            'image/png': PNG.sync.read,
+        };
 
-        if (mimeType === 'image/jpeg') {
-            rawFileData = decodeJpeg(fileData);
-        } else if (mimeType === 'image/png') {
-            rawFileData = PNG.sync.read(fileData);
-        } else {
-            throw new BadRequestException('El formato del archivo no esta soportado.');
+        const decodeFunction = decodeMap[mimeType];
+
+        if (!decodeFunction) {
+            throw new BadRequestException('El formato del archivo no está soportado.');
         }
 
         try {
+            const rawFileData = decodeFunction(fileData);
             const len = rawFileData.width * rawFileData.height;
             const luminancesUint8Array = new Uint8ClampedArray(len);
 
