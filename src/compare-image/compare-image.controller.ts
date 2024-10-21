@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CompareImageService } from './compare-image.service';
 
@@ -14,7 +14,7 @@ export class CompareImageController {
             return result;
         } catch (error) {
             console.error('Error durante la comparación de imágenes:', error);
-            throw new Error('No se pudo validar identidad.');
+            throw new BadRequestException(error.message);
         }
     }
 }
