@@ -1,10 +1,9 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, Res, UploadedFile, UseInterceptors, BadRequestException, Query } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Post, UploadedFile, UseInterceptors, BadRequestException, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { Pdf417DecoderService } from 'src/pdf417-decoder/pdf417-decoder.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
 
 @ApiTags('Auth')
@@ -21,21 +20,7 @@ export class AuthController {
     return this.authService.register(registerDto, dniPhoto)
   }
 
-  @ApiOperation({ description: "Obtener imagen del DNI por ID del usuario", summary: "Obtener imagen del DNI" })
-  @Get('dni-image/:userId')
-  async getDniImage(@Param('userId') userId: string, @Res() res: Response) {
-    const result = await this.authService.getDniImagePath(userId);
 
-    if (!result) {
-      throw new NotFoundException('Imagen no encontrada');
-    }
-
-    const { filePath, mimeType } = result;
-    console.log('Image Path:', filePath); // Imprimir ruta para depuración
-
-    res.set('Content-Type', mimeType); // Establece el tipo de contenido correcto
-    return res.sendFile(filePath)
-  }
 
   @ApiOperation({ description: "Sign In", summary: "Sign In" })
   @ApiConsumes('multipart/form-data')

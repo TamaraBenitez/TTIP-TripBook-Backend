@@ -16,10 +16,6 @@ import { User } from 'src/user/entities/user.entity';
 import { UpdateUserEmailVerificationDto } from './dto/user-email-verification.dto';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { FileUploadService } from 'src/file-upload/file-upload.service';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as mime from 'mime-types';
 import { RegisterDto } from './dto/register.dto';
 import { CompareImageService } from 'src/compare-image/compare-image.service';
 
@@ -33,7 +29,6 @@ export class AuthService {
     private readonly usersService: UserService,
     private readonly jwtService: JwtService,
     private configService: ConfigService,
-    private readonly fileUploadService: FileUploadService,
     private readonly compareImageService: CompareImageService
   ) {
     this.transporter = nodemailer.createTransport({
@@ -55,7 +50,6 @@ export class AuthService {
       throw new BadRequestException('El usuario ya existe');
     }
 
-    const fileName = await this.fileUploadService.uploadFile(file);
     const detectionsUser = await this.compareImageService.imageProcessed(file)
     if (!detectionsUser.length) {
       throw new BadRequestException('No se detectó ninguna cara en la imagen proporcionada.');
@@ -73,12 +67,10 @@ export class AuthService {
       locality,
       latitud,
       longitud,
-      dniImagePath: fileName,
       imageDescriptor: userDescriptorBase64,
     }
     await this.usersService.createUser(createData)
     const userCreated = await this.usersService.findOneByEmail(email)
-    console.log('ya se creo el user')
 
     const userResponse = plainToInstance(UserResponseDto, userCreated, { excludeExtraneousValues: true })
     return userResponse
@@ -174,33 +166,5 @@ export class AuthService {
 
     return true;
   }
-  async getDniImagePath(userId: string) {
-    try {
-      const user = await this.usersService.findOneById(userId); // Busca el usuario por ID
 
-      if (!user || !user.dniImagePath) {
-        return null; // No hay usuario o no hay imagen
-      }
-
-      const imagePath = path.join(__dirname, '../../uploads', user.dniImagePath);
-
-      // Imprime la ruta para depuración
-      console.log('Ruta de imagen:', imagePath);
-
-      // Verifica si el archivo existe y devuelve la ruta
-      if (fs.existsSync(imagePath)) {
-        let mimeType = mime.lookup(user.dniImagePath) || 'application/octet-stream'; // Obtiene el tipo de contenido
-        if (path.extname(user.dniImagePath) === '.jfif') {
-          mimeType = 'image/jpeg'; // Asumiendo que .jfif es un JPEG
-        }
-        console.log(mimeType)
-        return { filePath: imagePath, mimeType };
-      } else {
-        return null; // Archivo no encontrado
-      }
-    } catch (error) {
-      console.error('Error al buscar la imagen:', error);
-      throw error;
-    }
-  }
 }

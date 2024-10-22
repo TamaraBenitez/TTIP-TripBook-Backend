@@ -7,7 +7,6 @@ import { AuthModule } from './auth/auth.module';
 import { Pdf417DecoderModule } from './pdf417-decoder/pdf417-decoder.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
-import { FileUploadModule } from './file-upload/file-upload.module';
 import { TripCoordinateModule } from './trip-coordinate/trip-coordinate.module';
 import { CompareImageService } from './compare-image/compare-image.service';
 import { CompareImageModule } from './compare-image/compare-image.module';
@@ -35,7 +34,6 @@ import { CompareImageModule } from './compare-image/compare-image.module';
     TripCoordinateModule,
     AuthModule,
     Pdf417DecoderModule,
-    FileUploadModule,
     CompareImageModule],
   controllers: [],
   providers: [CompareImageService],
