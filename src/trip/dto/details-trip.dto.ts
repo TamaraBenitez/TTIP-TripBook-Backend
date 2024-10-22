@@ -1,15 +1,14 @@
+import { TripCoordinateDetailsDto } from "src/trip-coordinate/dto/trip-coordinate-details.dto";
 import { UserDetailsResponseDto } from "src/user/dto/details-user.dto";
 
 export class TripDetailsResponseDto {
     id: string;
-    startPoint: string;
-    endPoint: string;
+    origin: string;
+    destination: string;
     startDate: Date;
     description: string;
     estimatedCost: number;
-    numberOfRegistrants: number;
-    // latitud: number;
-    // longitud: number;
-  
+    maxPassengers: number;
     participants: UserDetailsResponseDto[];
+    tripCoordinates:TripCoordinateDetailsDto[];
   }

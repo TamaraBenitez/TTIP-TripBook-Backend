@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import * as faceapi from 'face-api.js';
 import * as tf from '@tensorflow/tfjs-node';
 import * as canvas from 'canvas';
-import * as path from 'path';
 import { UserService } from 'src/user/user.service';
 
 // Implementación de node-canvas
@@ -46,9 +45,7 @@ export class CompareImageService implements OnModuleInit {
 
     async onModuleInit() {
         // Cargar modelos al iniciar el módulo
-
-
-        const modelPath = 'models'
+        const modelPath = 'models';
         await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath);
         await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
         await faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath);

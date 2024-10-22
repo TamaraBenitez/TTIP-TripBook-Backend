@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable, BadRequestException } from '@nestjs/common';
 import { PDF417Reader, BinaryBitmap, HybridBinarizer, RGBLuminanceSource } from '@zxing/library';
 import { format, parse } from 'date-fns';
 import { decode as decodeJpeg } from 'jpeg-js';
@@ -76,6 +76,70 @@ export class Pdf417DecoderService {
         return { valid: true };
     }
 
+    async processLicense(file: Express.Multer.File, userId: string) {
+        const results = this.detectAndScan(file.buffer, file.mimetype);
+        if (!results) {
+            throw new BadRequestException('No se pudo leer el código.');
+        }
+
+        if (!results.getText().includes('\r\n')) {
+            throw new BadRequestException('Este código de barras no pertenece a una licencia de conducir.');
+        }
+        const licenseData = results.getText().split('\r\n');
+        const vencimiento = licenseData[9].split('Vto:')[1];
+        const fechaNacimientoString = licenseData[5];
+        const apellido = licenseData[4].toUpperCase();
+        const nombre = licenseData[3].split(' ')[0].toUpperCase();
+        const dni = licenseData[1];
+        const genderString = licenseData[2];   
+
+            const [day, month, year] = vencimiento.split('/').map(Number);
+            const expirationDate = new Date(year, month - 1, day);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if(expirationDate < today){
+                throw new ForbiddenException("Tu licencia expiró. No podes crear un viaje.");
+            }
+
+        const fechaNacimiento = parse(fechaNacimientoString, 'dd/MM/yyyy', new Date());
+        const fechaNacimientoFormatted = format(fechaNacimiento, 'yyyy-MM-dd');
+
+        const user = await this.userService.findOneById(userId);
+        if (!user) {
+            throw new BadRequestException('Usuario no encontrado.');
+        }
+
+        const genderMap: { [key: string]: Gender } = {
+            'M': Gender.MALE,
+            'F': Gender.FEMALE,
+        };
+
+        const gender = genderMap[genderString];
+        const userBirthDate = user.birthDate; // "1998-06-11 00:00:00"
+        const userBirthDateFormatted = format(new Date(userBirthDate), 'yyyy-MM-dd');
+
+        const comparisons = [
+            { field: apellido, expected: user.surname.split(' ')[0].toUpperCase(), label: 'apellido' },
+            { field: nombre, expected: user.name.split(' ')[0].toUpperCase(), label: 'nombre' },
+            // { field: dni, expected: user.nroDni, label: 'DNI' },
+            // { field: gender, expected: user.gender, label: 'género' },
+            { field: fechaNacimientoFormatted, expected: userBirthDateFormatted, label: 'fecha de nacimiento' },
+        ];
+
+        const discrepancies = comparisons
+            .filter(comp => comp.field !== comp.expected)
+            .map(comp => comp.label);
+
+        const isValid = discrepancies.length === 0;
+
+        if (!isValid) {
+            throw new BadRequestException('La información del la licencia no coincide con los datos del usuario.');
+        }
+
+        return { valid: true };
+    }
 
     detectAndScan(fileData: Buffer, mimeType: string) {
         const decodeMap: { [key: string]: (data: Buffer) => any } = {

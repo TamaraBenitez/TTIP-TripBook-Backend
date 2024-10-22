@@ -7,27 +7,22 @@ export class Trip {
     id: string;
 
     @Column()
-    startPoint: string; //  punto de partida
+    origin: string;
 
     @Column()
-    endPoint: string; //punto de destino
+    destination: string;
+
     @Column()
     startDate: Date;
 
     @Column({ type: 'text', nullable: true })
     description: string;
 
-    @Column({ type: 'decimal', precision: 10, scale: 2 })
+    @Column({ type: 'int' })
     estimatedCost: number;
 
-    @Column({ type: 'int', default: 0 })
-    numberOfRegistrants: number; // Número de personas inscriptas
-
-    @Column({ type: 'float', nullable: true })
-    latitud: number;
-
-    @Column({ type: 'float', nullable: true })
-    longitud: number;
+    @Column({ type: 'int'})
+    maxPassengers: number;
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.trip)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
