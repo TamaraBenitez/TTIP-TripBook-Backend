@@ -7,7 +7,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
-import { UpdateTripUserDto } from './dto/update-trip-user.dto';
 import { TripUser, TripUserStatus, UserRole } from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
@@ -28,11 +27,11 @@ export class TripUserService {
     private readonly tripService: TripService,
     private readonly dataSource: DataSource,
     private readonly tripCoordinateService: TripCoordinateService
-  ) {}
+  ) { }
 
   async registrationTripUser(createTripUserDto: CreateTripUserDto, tripDetails?: Trip, manager?: EntityManager) {
     const queryRunner = manager ? null : this.dataSource.createQueryRunner();
-    
+
     if (queryRunner) {
       await queryRunner.startTransaction();
     }
@@ -51,8 +50,8 @@ export class TripUserService {
     if (!user) {
       throw new NotFoundException('El usuario no existe en la plataforma');
     }
-    
-    if(!trip){ //User registering to an existing trip
+
+    if (!trip) { //User registering to an existing trip
       trip = await this.tripService.findTripEntityById(tripId);
     }
 
@@ -64,7 +63,7 @@ export class TripUserService {
         status: TripUserStatus.Confirmed,
         role: role ?? UserRole.PASSENGER,
       });
-  
+
       // Use the provided manager or the queryRunner's manager to save
       if (manager) {
         await manager.save(tripUser);
@@ -76,7 +75,7 @@ export class TripUserService {
       if (tripUser.role === UserRole.PASSENGER) {
         // Get the driver's start coordinate
         const driverCoordinate = await this.tripCoordinateService.getStartCoordinateByTripId(trip.id);
-  
+
         if (driverCoordinate) {
           const passengerCoordinate = new TripCoordinate();
           passengerCoordinate.latitude = driverCoordinate.latitude;  // Use driver's start latitude
@@ -84,7 +83,7 @@ export class TripUserService {
           passengerCoordinate.isStart = false; // Passenger's point, not start
           passengerCoordinate.isEnd = false;
           passengerCoordinate.tripUser = tripUser;
-  
+
           // Save the passenger coordinate
           if (manager) {
             await manager.save(passengerCoordinate);
@@ -97,9 +96,9 @@ export class TripUserService {
       if (!manager) {
         await queryRunner.commitTransaction(); // Commit only if using queryRunner
       }
-  
+
       return tripUser;
-  
+
     } catch (error) {
       if (queryRunner) {
         await queryRunner.rollbackTransaction(); // Rollback only if using queryRunner
@@ -112,12 +111,9 @@ export class TripUserService {
     }
   }
 
-  async findAll() {
-    return await this.tripUserRepository.find();
-  }
 
   async findTripsByUser(userId: string): Promise<ListTripResponseDto[]> {
-    var trips = await this.tripUserRepository
+    const trips = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
       .leftJoinAndSelect('trip.tripUsers', 'tripUsers')
@@ -135,7 +131,7 @@ export class TripUserService {
         'trip.maxPassengers',
       ])
       .getMany();
-      const ret = trips.map((tu) => {
+    const ret = trips.map((tu) => {
       const tripDto = new ListTripResponseDto();
       tripDto.id = tu.trip.id;
       tripDto.origin = tu.trip.origin;
@@ -153,7 +149,6 @@ export class TripUserService {
     return ret;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tripUser`;
-  }
+
+
 }

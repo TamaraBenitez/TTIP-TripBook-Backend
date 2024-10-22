@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import * as faceapi from 'face-api.js';
 import * as tf from '@tensorflow/tfjs-node';
 import * as canvas from 'canvas';
-import * as path from 'path';
 import { UserService } from 'src/user/user.service';
 
 // Implementación de node-canvas
