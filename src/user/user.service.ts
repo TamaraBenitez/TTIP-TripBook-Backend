@@ -18,16 +18,13 @@ export class UserService {
     return await this.userRepository.findOneBy({ email })
   }
 
-  async findAll() {
-    return await this.userRepository.find();
-  }
 
   async findOneById(id: string): Promise<User> {
 
     return await this.userRepository.findOneBy({ id })
   }
 
-  async findByVerifyToken(token: string): Promise<User>{
+  async findByVerifyToken(token: string): Promise<User> {
     return await this.userRepository.findOne({
       where: { emailVerificationToken: token }
     });
@@ -55,10 +52,8 @@ export class UserService {
 
   async update(id: string, updatedUser): Promise<User> {
     await this.userRepository.update(id, updatedUser);
-    return this.findOneById(id); 
+    return this.findOneById(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+
 }

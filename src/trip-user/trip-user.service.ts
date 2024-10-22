@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
-import { UpdateTripUserDto } from './dto/update-trip-user.dto';
 import { TripUser, TripUserStatus } from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -59,12 +58,9 @@ export class TripUserService {
     return { success: true };
   }
 
-  async findAll() {
-    return await this.tripUserRepository.find();
-  }
 
-  async findTripsByUser(userId: string): Promise<ListTripResponseDto[]>{
-    var trips = await this.tripUserRepository
+  async findTripsByUser(userId: string): Promise<ListTripResponseDto[]> {
+    const trips = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
       .where('tripUser.user.id = :userId', { userId })
@@ -80,7 +76,7 @@ export class TripUserService {
         'trip.numberOfRegistrants'
       ])
       .getMany();
-    const ret = trips.map((tu)=>{
+    const ret = trips.map((tu) => {
       const tripDto = new ListTripResponseDto();
       tripDto.id = tu.trip.id;
       tripDto.startPoint = tu.trip.startPoint;
@@ -90,16 +86,12 @@ export class TripUserService {
       tripDto.estimatedCost = tu.trip.estimatedCost;
       tripDto.numberOfRegistrants = tu.trip.numberOfRegistrants;
       return tripDto
-    }) 
+    })
 
 
     return ret;
   }
 
-
-  findOne(id: number) {
-    return `This action returns a #${id} tripUser`;
-  }
 
 
 }

@@ -46,7 +46,9 @@ export class CompareImageService implements OnModuleInit {
 
     async onModuleInit() {
         // Cargar modelos al iniciar el módulo
-        const modelPath = path.join(__dirname, '../../models');
+
+
+        const modelPath = 'models'
         await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath);
         await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
         await faceapi.nets.faceRecognitionNet.loadFromDisk(modelPath);
