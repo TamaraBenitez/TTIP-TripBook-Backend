@@ -9,6 +9,9 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from 'config/configuration';
 import { FileUploadModule } from './file-upload/file-upload.module';
 import { TripCoordinateModule } from './trip-coordinate/trip-coordinate.module';
+import { CompareImageController } from './compare-image/compare-image.controller';
+import { CompareImageService } from './compare-image/compare-image.service';
+import { CompareImageModule } from './compare-image/compare-image.module';
 
 @Module({
   imports: [
@@ -33,8 +36,9 @@ import { TripCoordinateModule } from './trip-coordinate/trip-coordinate.module';
   TripCoordinateModule, 
   AuthModule, 
   Pdf417DecoderModule,
-  FileUploadModule],
+  FileUploadModule,
+  CompareImageModule],
   controllers: [],
-  providers: [],
+  providers: [CompareImageService],
 })
 export class AppModule { }

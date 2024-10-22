@@ -23,14 +23,14 @@ export class User {
     @Column()
     password: string
 
-    @Column({ nullable: true, default:null })
+    @Column({ nullable: true, default: null })
     nroDni: string
 
-    @Column({ nullable: true, default:null })
+    @Column({ nullable: true, default: null })
     nroTramiteDni: string
 
 
-    @Column({ type: 'enum', enum: Gender, nullable:true }) // Usar el tipo enum
+    @Column({ type: 'enum', enum: Gender, nullable: true }) // Usar el tipo enum
     gender: Gender; // Campo para el sexo
 
     @Column({ type: 'date' })
@@ -54,7 +54,7 @@ export class User {
 
     @Column({ default: false })
     isUserVerified: boolean;
-  
+
     @Column({ nullable: true })
     emailVerificationToken: string;
 
@@ -64,10 +64,13 @@ export class User {
     // @Column({type: "array", nullable:true})
     // socialMediaLinks
 
-    @Column({ nullable:true })
+    @Column({ nullable: true })
     dniImagePath: string
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.user)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
 
+
+    @Column({ type: 'longtext' })
+    imageDescriptor: string; // Campo para almacenar la imagen en base64
 }

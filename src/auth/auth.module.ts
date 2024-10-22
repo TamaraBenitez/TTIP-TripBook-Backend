@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants/jwt.constants';
 import { Pdf417DecoderService } from 'src/pdf417-decoder/pdf417-decoder.service';
 import { FileUploadModule } from 'src/file-upload/file-upload.module';
+import { CompareImageModule } from 'src/compare-image/compare-image.module';
 
 
 @Module({
@@ -14,8 +15,9 @@ import { FileUploadModule } from 'src/file-upload/file-upload.module';
       global: true,
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1d' },
-    })],
+    }), CompareImageModule],
   controllers: [AuthController],
-  providers: [AuthService, Pdf417DecoderService]
+  providers: [AuthService, Pdf417DecoderService],
+  exports: [AuthService]
 })
 export class AuthModule { }
