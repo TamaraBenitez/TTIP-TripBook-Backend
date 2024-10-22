@@ -1,9 +1,10 @@
 export class ListTripResponseDto {
     id: string;
-    startPoint: string;
-    endPoint: string;
+    origin: string;
+    destination: string;
     startDate: Date;
     description: string;
     estimatedCost: number;
-    numberOfRegistrants: number;
+    registrants: number;
+    maxPassengers: number;
   }

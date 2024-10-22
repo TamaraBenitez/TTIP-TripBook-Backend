@@ -22,6 +22,9 @@ export class TripController {
     return this.tripService.findOneById(id);
   }
 
-
+  @Post()
+  create(@Body() createTripDto: CreateTripDto) {
+    return this.tripService.createTrip(createTripDto)
+  }
 
 }

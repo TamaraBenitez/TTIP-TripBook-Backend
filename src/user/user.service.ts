@@ -32,26 +32,26 @@ export class UserService {
       where: { emailVerificationToken: token }
     });
   }
-  async getUserTrips(id: string): Promise<Array<ListTripResponseDto>> {
-    const user = await this.userRepository.findOne({
-      where: { id: id },
-      relations: ['tripUsers', 'tripUsers.trip'],
-    });
+  // async getUserTrips(id: string): Promise<Array<ListTripResponseDto>> {
+  //   const user = await this.userRepository.findOne({
+  //     where: { id: id },
+  //     relations: ['tripUsers', 'tripUsers.trip'],
+  //   });
 
-    //map trips to ListTripResponseDtos
-    const trips = user.tripUsers.map(tu => {
-      const tripDto = new ListTripResponseDto();
-      tripDto.id = tu.trip.id;
-      tripDto.startPoint = tu.trip.startPoint;
-      tripDto.endPoint = tu.trip.endPoint;
-      tripDto.startDate = tu.trip.startDate;
-      tripDto.description = tu.trip.description;
-      tripDto.estimatedCost = tu.trip.estimatedCost;
-      tripDto.numberOfRegistrants = tu.trip.numberOfRegistrants;
-      return tripDto
-    }); // Extract trips
-    return trips;
-  }
+  //   //map trips to ListTripResponseDtos
+  //   const trips = user.tripUsers.map(tu => {
+  //     const tripDto = new ListTripResponseDto();
+  //     tripDto.id = tu.trip.id;
+  //     tripDto.origin = tu.trip.origin;
+  //     tripDto.destination = tu.trip.destination;
+  //     tripDto.startDate = tu.trip.startDate;
+  //     tripDto.description = tu.trip.description;
+  //     tripDto.estimatedCost = tu.trip.estimatedCost;
+  //     tripDto.maxPassengers = tu.trip.maxPassengers;
+  //     return tripDto
+  //   }); // Extract trips
+  //   return trips;
+  // }
 
   async update(id: string, updatedUser): Promise<User> {
     await this.userRepository.update(id, updatedUser);

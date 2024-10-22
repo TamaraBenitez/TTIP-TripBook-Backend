@@ -21,7 +21,7 @@ export class UserController {
 
   @Get('mytrips')
   getUserTrips(@Query('userid') userid: string) {
-    return this.userService.getUserTrips(userid);
+    // return this.userService.getUserTrips(userid);
   }
 
   @Get(':id')

@@ -9,10 +9,10 @@ export class Pdf417DecoderController {
   constructor(private readonly decoderService: Pdf417DecoderService) { }
 
 
-  @Post('decode')
+  @Post('decode/dni')
   @UseInterceptors(FileInterceptor('file'))
   @HttpCode(200)
-  async decodePdf417(@UploadedFile() file: Express.Multer.File, @Body() body: { userId: string }) {
+  async decodePdf417Dni(@UploadedFile() file: Express.Multer.File, @Body() body: { userId: string }) {
     try {
       const result = await this.decoderService.processDNI(file, body.userId);
       return result;
@@ -23,7 +23,19 @@ export class Pdf417DecoderController {
     }
   }
 
-
+  @Post('decode/license')
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(200)
+  async decodePdf417License(@UploadedFile() file: Express.Multer.File, @Body() body: { userId: string }) {
+    try {
+      const result = await this.decoderService.processLicense(file, body.userId);
+      return result;
+    } catch (error) {
+      throw new BadRequestException(
+        error.message || 'Ocurrió un error al procesar el código de barras.'
+      );
+    }
+  }
 
 }
 
