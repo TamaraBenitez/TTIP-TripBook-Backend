@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -13,12 +13,6 @@ export class UserController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
-  }
-
-  //borrar
-  @Get('mytrips')
-  getUserTrips(@Query('userid') userid: string) {
-    return this.userService.getUserTrips(userid);
   }
 
   @Get(':id')
