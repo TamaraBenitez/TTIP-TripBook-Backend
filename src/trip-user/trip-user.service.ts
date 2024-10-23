@@ -10,12 +10,12 @@ import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { TripUser, TripUserStatus, UserRole } from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { UserService } from 'src/user/user.service';
-import { TripService } from 'src/trip/trip.service';
-import { ListTripResponseDto } from 'src/trip/dto/list-trip.dto';
-import { Trip } from 'src/trip/entities/trip.entity';
-import { TripCoordinate } from 'src/trip-coordinate/entities/trip-coordinate.entity';
-import { TripCoordinateService } from 'src/trip-coordinate/trip-coordinate.service';
+import { UserService } from '../user/user.service';
+import { TripService } from '../trip/trip.service';
+import { ListTripResponseDto } from '../trip/dto/list-trip.dto';
+import { Trip } from '../trip/entities/trip.entity';
+import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
+import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.service';
 
 @Injectable()
 export class TripUserService {

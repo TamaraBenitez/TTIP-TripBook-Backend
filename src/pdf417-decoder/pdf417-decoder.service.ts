@@ -3,8 +3,8 @@ import { PDF417Reader, BinaryBitmap, HybridBinarizer, RGBLuminanceSource } from 
 import { format, parse } from 'date-fns';
 import { decode as decodeJpeg } from 'jpeg-js';
 import { PNG } from 'pngjs';
-import { Gender } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
+import { Gender } from '../user/entities/user.entity';
+import { UserService } from '../user/user.service';
 
 
 const barcodeScanner = new PDF417Reader();

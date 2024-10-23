@@ -1,6 +1,6 @@
-import { TripCoordinate } from 'src/trip-coordinate/entities/trip-coordinate.entity';
-import { Trip } from 'src/trip/entities/trip.entity';
-import { User } from 'src/user/entities/user.entity';
+import { TripCoordinate } from '../../trip-coordinate/entities/trip-coordinate.entity';
+import { Trip } from '../../trip/entities/trip.entity';
+import { User } from '../../user/entities/user.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 
 export enum TripUserStatus {
