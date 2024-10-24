@@ -12,12 +12,12 @@ import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import {
   TripUserStatus,
   UserRole,
-} from 'src/trip-user/entities/trip-user.entity';
-import { TripUserService } from 'src/trip-user/trip-user.service';
-import { CreateTripUserDto } from 'src/trip-user/dto/create-trip-user.dto';
-import { TripCoordinate } from 'src/trip-coordinate/entities/trip-coordinate.entity';
-import { TripCoordinateService } from 'src/trip-coordinate/trip-coordinate.service';
-import { UserService } from 'src/user/user.service';
+} from '../trip-user/entities/trip-user.entity';
+import { TripUserService } from '../trip-user/trip-user.service';
+import { CreateTripUserDto } from '../trip-user/dto/create-trip-user.dto';
+import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
+import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.service';
+import { UserService } from '../user/user.service';
 import { NotFoundException } from '@zxing/library';
 import { ListTripResponseDto } from './dto/list-trip.dto';
 

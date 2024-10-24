@@ -1,4 +1,4 @@
-import { TripUser } from "src/trip-user/entities/trip-user.entity";
+import { TripUser } from "../../trip-user/entities/trip-user.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 
