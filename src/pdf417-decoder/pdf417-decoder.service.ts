@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpStatus, Injectable, BadRequestException } from '@nestjs/common';
+import { ForbiddenException, Injectable, BadRequestException } from '@nestjs/common';
 import { PDF417Reader, BinaryBitmap, HybridBinarizer, RGBLuminanceSource } from '@zxing/library';
 import { format, parse } from 'date-fns';
 import { decode as decodeJpeg } from 'jpeg-js';
@@ -91,17 +91,17 @@ export class Pdf417DecoderService {
         const apellido = licenseData[4].toUpperCase();
         const nombre = licenseData[3].split(' ')[0].toUpperCase();
         const dni = licenseData[1];
-        const genderString = licenseData[2];   
+        const genderString = licenseData[2];
 
-            const [day, month, year] = vencimiento.split('/').map(Number);
-            const expirationDate = new Date(year, month - 1, day);
+        const [day, month, year] = vencimiento.split('/').map(Number);
+        const expirationDate = new Date(year, month - 1, day);
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-            if(expirationDate < today){
-                throw new ForbiddenException("Tu licencia expiró. No podes crear un viaje.");
-            }
+        if (expirationDate < today) {
+            throw new ForbiddenException("Tu licencia expiró. No podes crear un viaje.");
+        }
 
         const fechaNacimiento = parse(fechaNacimientoString, 'dd/MM/yyyy', new Date());
         const fechaNacimientoFormatted = format(fechaNacimiento, 'yyyy-MM-dd');

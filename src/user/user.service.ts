@@ -31,7 +31,7 @@ export class UserService {
 
   async update(id: string, updatedUser): Promise<User> {
     await this.userRepository.update(id, updatedUser);
-    return this.findOneById(id);
+    return await this.findOneById(id);
   }
 
 
