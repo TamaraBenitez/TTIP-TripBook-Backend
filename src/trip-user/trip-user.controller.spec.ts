@@ -4,14 +4,22 @@ import { TripUserService } from './trip-user.service';
 
 describe('TripUserController', () => {
   let controller: TripUserController;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let tripUserService: TripUserService;
 
   beforeEach(async () => {
+    const mockTripUserService = {
+      registrationTripUser: jest.fn(),
+      findTripsByUser: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripUserController],
-      providers: [TripUserService],
+      providers: [{ provide: TripUserService, useValue: mockTripUserService },],
     }).compile();
 
     controller = module.get<TripUserController>(TripUserController);
+    tripUserService = module.get<TripUserService>(TripUserService);
   });
 
   it('should be defined', () => {
