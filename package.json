@@ -94,7 +94,16 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.ts",
+      "!src/auth/constants/**",
+      "!src/common/decorators/**"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/src/auth/constants/",
+      "/src/common/decorators/",
+      "\\.module\\.ts$"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

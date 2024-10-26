@@ -2,7 +2,6 @@ import { Body, Controller, Get, NotFoundException, Post, UploadedFile, UseInterc
 import { AuthService } from './auth.service';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
-import { Pdf417DecoderService } from 'src/pdf417-decoder/pdf417-decoder.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RegisterDto } from './dto/register.dto';
 
@@ -10,7 +9,7 @@ import { RegisterDto } from './dto/register.dto';
 @Controller('auth')
 export class AuthController {
 
-  constructor(private readonly authService: AuthService, private readonly decoderService: Pdf417DecoderService) { }
+  constructor(private readonly authService: AuthService) { }
 
   @ApiOperation({ description: "Register/Create User", summary: "Register/Create User" })
   @ApiConsumes('multipart/form-data')
