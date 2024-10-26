@@ -3,21 +3,21 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
-import { UserResponseDto } from 'src/trip-user/dto/user.dto';
+import { UserResponseDto } from '../trip-user/dto/user.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { NotFoundException } from '@nestjs/common';
 import { addMinutes } from 'date-fns';
-import { User } from 'src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { UpdateUserEmailVerificationDto } from './dto/user-email-verification.dto';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
-import { CompareImageService } from 'src/compare-image/compare-image.service';
+import { CompareImageService } from '../compare-image/compare-image.service';
 
 
 
