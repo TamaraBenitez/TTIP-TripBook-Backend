@@ -4,9 +4,12 @@ import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CompareImageService } from '../compare-image/compare-image.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Gender, User } from '../user/entities/user.entity';
+import { plainToInstance } from 'class-transformer';
+import { RegisterDto } from './dto/register.dto';
+import { UserResponseDto } from '../trip-user/dto/user.dto';
 
 
 describe('AuthService', () => {
@@ -58,6 +61,7 @@ describe('AuthService', () => {
           provide: UserService,
           useValue: {
             findOneByEmail: jest.fn(),
+            createUser: jest.fn(),
           },
         },
         {
@@ -85,6 +89,7 @@ describe('AuthService', () => {
           provide: CompareImageService,
           useValue: {
             compareFaces: jest.fn(),
+            imageProcessed: jest.fn(),
           },
         },],
     }).compile();
@@ -149,6 +154,134 @@ describe('AuthService', () => {
 
     await expect(service.login(loginDto, fileMock)).rejects.toThrow(
       new UnauthorizedException('Las caras no coinciden'),
+    );
+  });
+
+
+
+  /* it('should register a user successfully', async () => {
+    const registerDto = {
+      id: 'mock-id',
+      name: 'Test',
+      surname: 'User',
+      email: 'test@example.com',
+      password: 'hashedpassword',
+      birthDate: new Date(),
+      imageDescriptor: 'mock-base64-descriptor',
+      province: 'Province',
+      locality: 'Locality',
+      latitud: 0.0,
+      longitud: 0.0,
+      nroDni: null,
+      nroTramiteDni: null,
+      gender: Gender.MALE,
+      isEmailVerified: false,
+      isUserVerified: false,
+      emailVerificationToken: null,
+      emailVerificationTokenExpires: null,
+      tripUsers: []
+    };
+    const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
+
+    const mockDetection = {
+      detection: {
+        _score: 0.99,
+        _classScore: 0.99,
+        _className: 'face',
+        _imageDims: { width: 100, height: 100 },
+        _box: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+        },
+        imageWidth: 100,
+        imageHeight: 100,
+        relativeBox: {
+          x: 0,
+          y: 0,
+          width: 1,
+          height: 1,
+        },
+        classScore: jest.fn().mockReturnValue(0.99),
+        className: jest.fn().mockReturnValue('face'),
+        imageDims: jest.fn().mockReturnValue({ width: 100, height: 100 }),
+        box: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+        },
+        score: 0.99,
+        forSize: jest.fn(),
+        getBox: jest.fn().mockReturnValue({
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+        }),
+        getScore: jest.fn().mockReturnValue(0.99),
+      },
+      descriptor: new Float32Array(128), // Simulación del descriptor
+    };
+    
+
+    const userDescriptorBase64 = Buffer.from(mockDetection.descriptor.buffer).toString('base64');
+    const createdUser = { id: '1', ...registerDto, imageDescriptor: userDescriptorBase64 };
+    const userResponse = plainToInstance(UserResponseDto, createdUser, { excludeExtraneousValues: true });
+
+    jest.spyOn(userService, 'findOneByEmail').mockResolvedValueOnce(null);
+    jest.spyOn(compareImageService, 'imageProcessed').mockResolvedValueOnce([mockDetection]);
+    (jest.spyOn(bcrypt, 'hash') as jest.Mock).mockResolvedValue('hashedPassword');
+    jest.spyOn(userService, 'createUser').mockResolvedValue(createdUser);
+    jest.spyOn(userService, 'findOneByEmail').mockResolvedValue(createdUser);
+
+    const result = await service.register(registerDto, fileMock);
+
+    expect(result).toEqual(userResponse);
+  }); */
+
+  it('should throw BadRequestException if user already exists', async () => {
+    jest.spyOn(userService, 'findOneByEmail').mockResolvedValueOnce({} as any);
+
+    const registerDto: RegisterDto = {
+      name: 'John',
+      surname: 'Doe',
+      email: 'existing@example.com',
+      password: 'password123',
+      birthDate: new Date(),
+      province: 'TestProvince',
+      locality: 'TestLocality',
+      latitud: 10.0,
+      longitud: 20.0,
+    };
+    const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
+
+    await expect(service.register(registerDto, fileMock)).rejects.toThrow(
+      new BadRequestException('El usuario ya existe'),
+    );
+  });
+
+  it('should throw BadRequestException if no face is detected', async () => {
+    jest.spyOn(userService, 'findOneByEmail').mockResolvedValueOnce(null);
+    jest.spyOn(compareImageService, 'imageProcessed').mockResolvedValueOnce([]);
+
+
+    const registerDto: RegisterDto = {
+      name: 'John',
+      surname: 'Doe',
+      email: 'new@example.com',
+      password: 'password123',
+      birthDate: new Date(),
+      province: 'TestProvince',
+      locality: 'TestLocality',
+      latitud: 10.0,
+      longitud: 20.0,
+    };
+    const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
+
+    await expect(service.register(registerDto, fileMock)).rejects.toThrow(
+      new BadRequestException('No se detectó ninguna cara en la imagen proporcionada.'),
     );
   });
 
