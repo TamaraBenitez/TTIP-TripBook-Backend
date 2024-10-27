@@ -69,7 +69,6 @@ export class TripUserService {
         await manager.save(tripUser);
       } else {
         await queryRunner.manager.save(tripUser);
-        // await queryRunner.commitTransaction(); 
       }
 
       if (tripUser.role === UserRole.PASSENGER) {
