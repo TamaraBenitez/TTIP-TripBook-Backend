@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { TripCoordinate } from "./entities/trip-coordinate.entity";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
-import { TripUser, UserRole } from "src/trip-user/entities/trip-user.entity";
+import { TripUser } from "src/trip-user/entities/trip-user.entity";
 
 @Injectable()
 export class TripCoordinateService {
