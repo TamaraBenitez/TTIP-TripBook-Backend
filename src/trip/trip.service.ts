@@ -20,6 +20,8 @@ import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.servic
 import { UserService } from '../user/user.service';
 import { NotFoundException } from '@zxing/library';
 import { ListTripResponseDto } from './dto/list-trip.dto';
+import { format } from 'date-fns';
+
 
 @Injectable()
 export class TripService {
@@ -31,7 +33,7 @@ export class TripService {
     private readonly userService: UserService,
     private readonly tripCoordinateService: TripCoordinateService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   async findAll() {
     const trips: Trip[] = await this.tripRepository.find({ relations: ['tripUsers'] });
@@ -91,11 +93,11 @@ export class TripService {
       where: { id: tripId },
       relations: ['tripUsers'],
     });
-  
+
     if (!trip) {
       throw new NotFoundException('Trip not found');
     }
-  
+
     return trip; // Return the full Trip entity
   }
   async createTrip(
@@ -116,6 +118,22 @@ export class TripService {
         userId,
         maxPassengers,
       } = createTripDto;
+
+      const startDateOnly = format(new Date(startDate), 'yyyy-MM-dd');
+
+      const existingTrip = await this.tripRepository
+        .createQueryBuilder("trip")
+        .leftJoin("trip.tripUsers", "tripUser")
+        .leftJoin("tripUser.user", "user")
+        .where("DATE(trip.startDate) = :startDateOnly", { startDateOnly })
+        .andWhere("user.id = :userId", { userId })
+        .getOne();
+
+
+
+      if (existingTrip) {
+        throw new BadRequestException('Ya tienes un viaje creado en la misma fecha');
+      }
 
       // Create the trip entity
       const trip = new Trip();

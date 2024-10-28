@@ -39,17 +39,17 @@ const exampleTripUser = {
   user: exampleUser,
   trip: exampleTrip,
   status: TripUserStatus.Confirmed,
-  role: UserRole.DRIVER ,
+  role: UserRole.DRIVER,
 }
 const exampleTripDto = {
   id: 'testid',
   origin: 'testorigin',
   destination: 'testdestination',
-  startPoint:{
+  startPoint: {
     latitude: 51.505,
     longitude: -0.09
   },
-  endPoint:{
+  endPoint: {
     latitude: 51.505,
     longitude: -0.09
   },
@@ -82,7 +82,13 @@ const mockTripRepository = {
   find: jest.fn().mockResolvedValue([exampleTrip]),
   findOne: jest.fn().mockResolvedValue(exampleTrip),
   delete: jest.fn(),
-  create: jest.fn()
+  create: jest.fn(),
+  createQueryBuilder: jest.fn().mockImplementation(() => ({
+    leftJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getOne: jest.fn().mockResolvedValue(null),
+  })),
 };
 const mockTripUserRepository = {
   save: jest.fn(),
@@ -185,7 +191,7 @@ describe('TripService', () => {
     jest.spyOn(mockManager, 'save');
     jest.spyOn(mockTripUserRepository, 'findOne');
     jest.spyOn(mockTripUserRepository, 'create');
-    
+
 
     await tripService.createTrip(exampleTripDto);
     expect(dataSourceMock.createQueryRunner).toHaveBeenCalled();
@@ -195,24 +201,24 @@ describe('TripService', () => {
       where: { user: { id: exampleTripDto.userId }, trip: { id: exampleTrip.id } },
     })
     expect(mockTripUserRepository.create).toHaveBeenCalledWith({
-      user:exampleUser,
-      trip:exampleCreateTrip,
+      user: exampleUser,
+      trip: exampleCreateTrip,
       joinDate: new Date(),
-      status:"confirmed",
-      role:"driver"
+      status: "confirmed",
+      role: "driver"
     });
     expect(mockQueryRunnerResult.commitTransaction).toHaveBeenCalled();
     expect(mockQueryRunnerResult.release).toHaveBeenCalled();
-    
+
   });
   it('should throw exception when user doesnt exist', async () => {
     mockUserRepository.findOneBy.mockResolvedValueOnce(null);
 
     await expect(tripService.createTrip(exampleTripDto)).rejects.toThrow(
       'El usuario no existe en la plataforma'
-    );    
+    );
   });
-  it('should rollback transaction when a call fails', async ()=>{
+  it('should rollback transaction when a call fails', async () => {
     mockQueryRunnerResult.manager.save.mockRejectedValueOnce("Some save error");
     jest.spyOn(mockQueryRunnerResult, 'rollbackTransaction');
 
