@@ -64,17 +64,12 @@ export class TripService {
     if (!trip) {
       throw new BadRequestException('El viaje no existe en la plataforma');
     }
-    // Map to DTO format
-    const tripDetails = new TripDetailsResponseDto();
-    tripDetails.id = trip.id;
-    tripDetails.origin = trip.origin;
-    tripDetails.destination = trip.destination;
-    tripDetails.startDate = trip.startDate;
-    tripDetails.description = trip.description;
-    tripDetails.estimatedCost = trip.estimatedCost;
-    tripDetails.maxPassengers = trip.maxPassengers;
+    const confirmedTripUsers = trip.tripUsers.filter(
+      (tripUser) => tripUser.status === TripUserStatus.Confirmed
+    );
 
-    tripDetails.participants = trip.tripUsers.map((tripUser) => ({
+    // Mapear solo los participantes confirmados a DTO
+    const participants = confirmedTripUsers.map((tripUser) => ({
       id: tripUser.user.id,
       name: tripUser.user.name,
       surname: tripUser.user.surname,
@@ -83,7 +78,20 @@ export class TripService {
       province: tripUser.user.province,
     }));
 
-    tripDetails.tripCoordinates = (await this.tripCoordinateService.getCoordinatesByTripUsers(trip.tripUsers)).flat();
+    // Obtenemos las coordenadas de los trip_users confirmados
+    const tripCoordinates = await this.tripCoordinateService.getCoordinatesByTripUsers(confirmedTripUsers);
+
+    // Mapeamos los datos finales a TripDetailsResponseDto
+    const tripDetails = new TripDetailsResponseDto();
+    tripDetails.id = trip.id;
+    tripDetails.origin = trip.origin;
+    tripDetails.destination = trip.destination;
+    tripDetails.startDate = trip.startDate;
+    tripDetails.description = trip.description;
+    tripDetails.estimatedCost = trip.estimatedCost;
+    tripDetails.maxPassengers = trip.maxPassengers;
+    tripDetails.participants = participants;
+    tripDetails.tripCoordinates = tripCoordinates;
 
     return tripDetails;
   }
