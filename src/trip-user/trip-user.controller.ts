@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, } from '@nestjs/common';
 import { TripUserService } from './trip-user.service';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
 
 
 @ApiTags('TripUser')
@@ -19,6 +20,10 @@ export class TripUserController {
     return this.tripUserService.findTripsByUser(userId);
   }
 
+  @Post('/createRegistrationWithOtherCoordinates')
+  async registrationTripUserWithOtherCoordinates(@Body() createTripWithOtherCoordinates: CreateTripWithOtherCoordinates) {
+    return this.tripUserService.registerPassengerWithOtherCoordinates(createTripWithOtherCoordinates)
+  }
 
 
 

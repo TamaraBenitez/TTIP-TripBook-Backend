@@ -16,6 +16,7 @@ import { ListTripResponseDto } from '../trip/dto/list-trip.dto';
 import { Trip } from '../trip/entities/trip.entity';
 import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
 import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.service';
+import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
 
 @Injectable()
 export class TripUserService {
@@ -39,7 +40,7 @@ export class TripUserService {
     const existingEnrollment = await this.tripUserRepository.findOne({
       where: { user: { id: userId }, trip: { id: tripId } },
     });
-    var trip = tripDetails;
+    let trip = tripDetails;
 
     if (existingEnrollment) {
       throw new BadRequestException(
@@ -107,6 +108,76 @@ export class TripUserService {
       if (queryRunner) {
         await queryRunner.release(); // Release only if using queryRunner
       }
+    }
+  }
+
+  async registerPassengerWithOtherCoordinates(createPassengerDto: CreateTripWithOtherCoordinates) {
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.startTransaction();
+    const { userId, tripId, latitude, longitude } = createPassengerDto;
+    try {
+
+      const existingEnrollment = await this.tripUserRepository.findOne({
+        where: { user: { id: userId }, trip: { id: tripId } },
+      });
+      if (existingEnrollment) {
+        throw new BadRequestException('El usuario ya está inscripto en este viaje');
+      }
+
+
+      const user = await this.userService.findOneById(userId);
+      if (!user) {
+        throw new NotFoundException('El usuario no existe en la plataforma');
+      }
+
+
+      const trip = await this.tripService.findTripEntityById(tripId);
+      if (!trip) {
+        throw new NotFoundException('El viaje no existe en la plataforma');
+      }
+
+      const conflictingEnrollment = await this.tripUserRepository.findOne({
+        where: {
+          user: { id: userId },
+          trip: { startDate: trip.startDate },
+        },
+      });
+      if (conflictingEnrollment) {
+        throw new BadRequestException(
+          'El usuario ya está inscripto en otro viaje en la misma fecha'
+        );
+      }
+
+
+      const tripUser = this.tripUserRepository.create({
+        user: user,
+        trip: trip,
+        joinDate: new Date(),
+        status: TripUserStatus.Pending,
+        role: UserRole.PASSENGER,
+      });
+
+      await queryRunner.manager.save(tripUser);
+
+
+      const passengerCoordinate = new TripCoordinate();
+      passengerCoordinate.latitude = latitude;
+      passengerCoordinate.longitude = longitude;
+      passengerCoordinate.isStart = false;
+      passengerCoordinate.isEnd = false;
+      passengerCoordinate.tripUser = tripUser;
+
+      await queryRunner.manager.save(passengerCoordinate);
+
+      await queryRunner.commitTransaction();
+      return tripUser;
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 
