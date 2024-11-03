@@ -27,9 +27,9 @@ export class TripUserController {
     return this.tripUserService.registerPassengerWithOtherCoordinates(createTripWithOtherCoordinates)
   }
 
-  @Get('/requestDetails/:tripUserId')
-  async getPassengerDetails(@Param('tripUserId') tripUserId: string) {
-    return await this.tripUserService.getRequestDetails(tripUserId);
+  @Get('/requestDetails/:tripUserId/:tripId')
+  async getPassengerDetails(@Param('tripUserId') tripUserId: string, @Param('tripId') tripId: string) {
+    return await this.tripUserService.getRequestDetails(tripUserId, tripId);
   }
 
 

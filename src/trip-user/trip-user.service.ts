@@ -223,7 +223,8 @@ export class TripUserService {
   }
 
 
-  async getRequestDetails(tripUserId: string) {
+  async getRequestDetails(tripUserId: string, tripId: string) {
+    // Obtener el tripUser principal con estado pendiente
     const tripUser = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .innerJoinAndSelect('tripUser.user', 'user')
@@ -236,10 +237,30 @@ export class TripUserService {
       throw new BadRequestException('Pending passenger not found or not in pending status.');
     }
 
-
+    // Resolver las tripCoordinates del tripUser principal
     const coordinates = await tripUser.tripCoordinates;
 
+    // Obtener los tripUsers confirmados asociados al tripId 
+    const confirmedTripUsers = await this.tripUserRepository
+      .createQueryBuilder('tripUser')
+      .innerJoinAndSelect('tripUser.user', 'user')
+      .leftJoinAndSelect('tripUser.tripCoordinates', 'tripCoordinate')
+      .where('tripUser.trip.id = :tripId', { tripId })
+      .andWhere('tripUser.status = :confirmedStatus', { confirmedStatus: TripUserStatus.Confirmed })
+      .getMany();
 
+    // Obtener las coordenadas de los tripUsers confirmados utilizando la lógica de mapeo
+    const coordinatesConfirmed = await Promise.all(
+      confirmedTripUsers.map(async (confirmedTripUser) => {
+        const confirmedCoordinates = await confirmedTripUser.tripCoordinates;
+        return confirmedCoordinates.map((coordinate) => ({
+          latitude: coordinate.latitude,
+          longitude: coordinate.longitude,
+          isStart: coordinate.isStart,
+          isEnd: coordinate.isEnd,
+        }));
+      }),
+    );
 
     return {
       tripUserId: tripUser.id,
@@ -247,16 +268,15 @@ export class TripUserService {
       surname: tripUser.user.surname,
       email: tripUser.user.email,
       isUserVerified: tripUser.user.isUserVerified,
-      coordinates: coordinates.map(coordinate => ({
+      coordinates: coordinates.map((coordinate) => ({
         latitude: coordinate.latitude,
         longitude: coordinate.longitude,
         isStart: coordinate.isStart,
         isEnd: coordinate.isEnd,
       })),
+      coordinatesConfirmed: coordinatesConfirmed.flat(),
     };
   }
-
-
 
 
 }
