@@ -182,12 +182,15 @@ export class TripUserService {
   }
 
 
-  async findTripsByUser(userId: string): Promise<ListTripResponseDto[]> {
+
+
+  async findTripsByUser(userId: string, role: UserRole): Promise<ListTripResponseDto[]> {
     const trips = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
       .leftJoinAndSelect('trip.tripUsers', 'tripUsers')
       .where('tripUser.user.id = :userId', { userId })
+      .andWhere('tripUser.role = :role', { role })
       .select([
         'tripUser.joinDate',
         'tripUser.status',
@@ -218,6 +221,41 @@ export class TripUserService {
 
     return ret;
   }
+
+
+  async getRequestDetails(tripUserId: string) {
+    const tripUser = await this.tripUserRepository
+      .createQueryBuilder('tripUser')
+      .innerJoinAndSelect('tripUser.user', 'user')
+      .leftJoinAndSelect('tripUser.tripCoordinates', 'tripCoordinate')
+      .where('tripUser.id = :tripUserId', { tripUserId })
+      .andWhere('tripUser.status = :pendingStatus', { pendingStatus: TripUserStatus.Pending })
+      .getOne();
+
+    if (!tripUser) {
+      throw new BadRequestException('Pending passenger not found or not in pending status.');
+    }
+
+
+    const coordinates = await tripUser.tripCoordinates;
+
+
+
+    return {
+      tripUserId: tripUser.id,
+      name: tripUser.user.name,
+      surname: tripUser.user.surname,
+      email: tripUser.user.email,
+      isUserVerified: tripUser.user.isUserVerified,
+      coordinates: coordinates.map(coordinate => ({
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+        isStart: coordinate.isStart,
+        isEnd: coordinate.isEnd,
+      })),
+    };
+  }
+
 
 
 

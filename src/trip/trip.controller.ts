@@ -27,4 +27,10 @@ export class TripController {
     return this.tripService.createTrip(createTripDto)
   }
 
+  @Get('/driver/:userId/pendingPassengers')
+  async getDriverTripsWithPendingPassengers(@Param('userId') userId: string) {
+    const tripsWithPendingPassengers = await this.tripService.getTripsWithPendingPassengers(userId);
+    return tripsWithPendingPassengers;
+  }
+
 }
