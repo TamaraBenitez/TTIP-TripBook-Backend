@@ -275,6 +275,10 @@ export class TripUserService {
         isEnd: coordinate.isEnd,
       })),
       coordinatesConfirmed: coordinatesConfirmed.flat(),
+      destination:"DESTINATION",
+      startDate:"STARTDATE",
+      origin:"ORIGIN",
+      contact: 2214444444
     };
   }
 

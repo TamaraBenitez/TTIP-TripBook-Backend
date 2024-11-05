@@ -56,6 +56,7 @@ export class TripService {
   }
 
   async findOneById(id: string) {
+    //Find one trip and return only confirmed tripCoordinates
     const trip = await this.tripRepository.findOne({
       where: { id: id },
       relations: ['tripUsers', 'tripUsers.user'],
