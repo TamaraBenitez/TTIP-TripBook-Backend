@@ -41,7 +41,7 @@ export class TripService {
     return trips.map((trip) => this.mapToListTripResponseDto(trip));
   }
   private mapToListTripResponseDto(trip: Trip): ListTripResponseDto {
-    const registrantsCount = trip.tripUsers.length;
+    const registrantsCount = trip.tripUsers.length ? trip.tripUsers.length - 1 : trip.tripUsers.length; //registrants except the driver
 
     return {
       id: trip.id,

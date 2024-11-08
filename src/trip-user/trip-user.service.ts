@@ -137,6 +137,13 @@ export class TripUserService {
         throw new NotFoundException('El viaje no existe en la plataforma');
       }
 
+      const currentPassengersCount = await this.tripUserRepository.count({
+        where: { trip: { id: tripId } },
+      });
+      if (currentPassengersCount >= trip.maxPassengers) {
+        throw new BadRequestException('El viaje ha alcanzado su límite máximo de pasajeros');
+      }
+
       const conflictingEnrollment = await this.tripUserRepository.findOne({
         where: {
           user: { id: userId },
@@ -213,9 +220,7 @@ export class TripUserService {
       tripDto.description = tu.trip.description;
       tripDto.estimatedCost = tu.trip.estimatedCost;
       tripDto.maxPassengers = tu.trip.maxPassengers;
-      tripDto.registrants = tu.trip.tripUsers
-        ? tu.trip.tripUsers.reduce((count) => count + 1, 0)
-        : 0;
+      tripDto.registrants = tu.trip.tripUsers.length ? (tu.trip.tripUsers.length - 1) : 0;
       return tripDto;
     });
 
