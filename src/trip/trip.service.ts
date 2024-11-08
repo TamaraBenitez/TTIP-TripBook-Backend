@@ -126,6 +126,7 @@ export class TripService {
         destination,
         userId,
         maxPassengers,
+        maxTolerableDistance
       } = createTripDto;
 
       const startDateOnly = format(new Date(startDate), 'yyyy-MM-dd');
@@ -152,6 +153,7 @@ export class TripService {
       trip.description = description;
       trip.estimatedCost = estimatedCost;
       trip.maxPassengers = maxPassengers;
+      trip.maxTolerableDistance = maxTolerableDistance;
 
       // Save the trip
       const savedTrip = await queryRunner.manager.save(trip);
@@ -199,6 +201,7 @@ export class TripService {
       tripDetails.description = savedTrip.description;
       tripDetails.estimatedCost = savedTrip.estimatedCost;
       tripDetails.maxPassengers = savedTrip.maxPassengers;
+      tripDetails.maxTolerableDistance = savedTrip.maxTolerableDistance;
 
       const user = await this.userService.findOneById(userId);
       // Include the driver in the participants

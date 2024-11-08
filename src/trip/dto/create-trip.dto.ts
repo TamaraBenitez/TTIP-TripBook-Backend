@@ -33,6 +33,9 @@ export class CreateTripDto {
     @IsNumber()
     maxPassengers: number;
 
+    @IsNumber()
+    maxTolerableDistance: number
+
     @IsString()
     @IsNotEmpty()
     userId: string;
