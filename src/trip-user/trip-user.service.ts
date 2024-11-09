@@ -9,7 +9,7 @@ import {
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { TripUser, TripUserStatus, UserRole } from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { TripService } from '../trip/trip.service';
 import { ListTripResponseDto } from '../trip/dto/list-trip.dto';
@@ -17,9 +17,12 @@ import { Trip } from '../trip/entities/trip.entity';
 import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
 import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.service';
 import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
+import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class TripUserService {
+  private transporter;
   constructor(
     @InjectRepository(TripUser)
     private readonly tripUserRepository: Repository<TripUser>,
@@ -27,8 +30,19 @@ export class TripUserService {
     @Inject(forwardRef(() => TripService))
     private readonly tripService: TripService,
     private readonly dataSource: DataSource,
-    private readonly tripCoordinateService: TripCoordinateService
-  ) { }
+    private readonly tripCoordinateService: TripCoordinateService,
+    private configService: ConfigService,
+  ) {
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('SMTP_HOST'),
+      port: this.configService.get<string>('SMTP_PORT'),
+      secure: this.configService.get<string>('SMTP_SECURE') === 'true',
+      auth: {
+        user: this.configService.get<string>('SMTP_USER'),
+        pass: this.configService.get<string>('SMTP_PASS'),
+      },
+    });
+  }
 
   async registrationTripUser(createTripUserDto: CreateTripUserDto, tripDetails?: Trip, manager?: EntityManager) {
     const queryRunner = manager ? null : this.dataSource.createQueryRunner();
@@ -119,7 +133,11 @@ export class TripUserService {
     try {
 
       const existingEnrollment = await this.tripUserRepository.findOne({
-        where: { user: { id: userId }, trip: { id: tripId } },
+        where: {
+          user: { id: userId },
+          trip: { id: tripId },
+          status: In([TripUserStatus.Confirmed, TripUserStatus.Pending]),
+        },
       });
       if (existingEnrollment) {
         throw new BadRequestException('El usuario ya está inscripto en este viaje');
@@ -141,6 +159,7 @@ export class TripUserService {
         where: {
           user: { id: userId },
           trip: { startDate: trip.startDate },
+          status: In([TripUserStatus.Confirmed, TripUserStatus.Pending])
         },
       });
       if (conflictingEnrollment) {
@@ -175,19 +194,28 @@ export class TripUserService {
 
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+
+        throw error;
+      }
+
+
+      throw new InternalServerErrorException(error.message);
     } finally {
       await queryRunner.release();
     }
   }
 
 
-  async findTripsByUser(userId: string): Promise<ListTripResponseDto[]> {
+
+
+  async findTripsByUser(userId: string, role: UserRole): Promise<ListTripResponseDto[]> {
     const trips = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
       .leftJoinAndSelect('trip.tripUsers', 'tripUsers')
       .where('tripUser.user.id = :userId', { userId })
+      .andWhere('tripUser.role = :role', { role })
       .select([
         'tripUser.joinDate',
         'tripUser.status',
@@ -220,5 +248,209 @@ export class TripUserService {
   }
 
 
+  async getRequestDetails(tripUserId: string, tripId: string) {
+    // Obtener el tripUser principal con estado pendiente
+    const tripUser = await this.tripUserRepository
+      .createQueryBuilder('tripUser')
+      .innerJoinAndSelect('tripUser.user', 'user')
+      .leftJoinAndSelect('tripUser.tripCoordinates', 'tripCoordinate')
+      .where('tripUser.id = :tripUserId', { tripUserId })
+      .andWhere('tripUser.status = :pendingStatus', { pendingStatus: TripUserStatus.Pending })
+      .getOne();
 
+    if (!tripUser) {
+      throw new BadRequestException('Pending passenger not found or not in pending status.');
+    }
+
+    const trip = await this.tripUserRepository
+      .createQueryBuilder('tripUser')
+      .innerJoinAndSelect('tripUser.trip', 'trip')
+      .where('tripUser.trip.id = :tripId', { tripId })
+      .getOne();
+
+    if (!trip || !trip.trip) {
+      throw new BadRequestException('Trip not found.');
+    }
+
+    // Resolver las tripCoordinates del tripUser principal
+    const coordinates = await tripUser.tripCoordinates;
+
+    // Obtener los tripUsers confirmados asociados al tripId 
+    const confirmedTripUsers = await this.tripUserRepository
+      .createQueryBuilder('tripUser')
+      .innerJoinAndSelect('tripUser.user', 'user')
+      .leftJoinAndSelect('tripUser.tripCoordinates', 'tripCoordinate')
+      .where('tripUser.trip.id = :tripId', { tripId })
+      .andWhere('tripUser.status = :confirmedStatus', { confirmedStatus: TripUserStatus.Confirmed })
+      .getMany();
+
+    // Obtener las coordenadas de los tripUsers confirmados utilizando la lógica de mapeo
+    const coordinatesConfirmed = await Promise.all(
+      confirmedTripUsers.map(async (confirmedTripUser) => {
+        const confirmedCoordinates = await confirmedTripUser.tripCoordinates;
+        return confirmedCoordinates.map((coordinate) => ({
+          latitude: coordinate.latitude,
+          longitude: coordinate.longitude,
+          isStart: coordinate.isStart,
+          isEnd: coordinate.isEnd,
+        }));
+      }),
+    );
+
+    return {
+      tripUserId: tripUser.id,
+      name: tripUser.user.name,
+      surname: tripUser.user.surname,
+      email: tripUser.user.email,
+      isUserVerified: tripUser.user.isUserVerified,
+      origin: trip.trip.origin,
+      destination: trip.trip.destination,
+      startDate: trip.trip.startDate,
+      coordinates: coordinates.map((coordinate) => ({
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+        isStart: coordinate.isStart,
+        isEnd: coordinate.isEnd,
+      })),
+      coordinatesConfirmed: coordinatesConfirmed.flat(),
+      contact: tripUser.user.phoneNumber
+    };
+  }
+
+  async rejectRequest(tripUserId: string, rejectionReason: string) {
+
+    const tripUser = await this.tripUserRepository.findOne({
+      where: { id: tripUserId },
+      relations: ['trip', 'user'],
+    });
+
+    if (!tripUser) {
+      throw new NotFoundException('Solicitud de pasajero no encontrada');
+    }
+
+    if (tripUser.status !== TripUserStatus.Pending) {
+      throw new BadRequestException('La solicitud no está en estado pendiente');
+    }
+
+    const trip = tripUser.trip;
+
+    tripUser.status = TripUserStatus.Rejected;
+    await this.tripUserRepository.save(tripUser);
+
+
+    await this.sendEmail(
+      tripUser.user.email,
+      tripUser.user.name,
+      'rechazada',
+      trip.origin,
+      trip.destination,
+      rejectionReason
+    );
+    return {
+      message: 'La solicitud ha sido rechazada.',
+      status: tripUser.status,
+    };
+  }
+
+  async acceptRequest(tripUserId: string) {
+
+    const tripUser = await this.tripUserRepository.findOne({
+      where: { id: tripUserId },
+      relations: ['trip', 'user'],
+    });
+
+    if (!tripUser) {
+      throw new NotFoundException('Solicitud de pasajero no encontrada');
+    }
+
+    if (tripUser.status !== TripUserStatus.Pending) {
+      throw new BadRequestException('La solicitud no está en estado pendiente');
+    }
+
+    const trip = tripUser.trip;
+
+
+    const confirmedPassengersCount = await this.tripUserRepository.count({
+      where: {
+        trip: { id: trip.id },
+        status: TripUserStatus.Confirmed,
+      },
+    });
+
+    if ((confirmedPassengersCount - 1) >= trip.maxPassengers) {
+
+      tripUser.status = TripUserStatus.Rejected;
+      await this.tripUserRepository.save(tripUser);
+
+
+      await this.sendEmail(
+        tripUser.user.email,
+        tripUser.user.name,
+        'rechazada',
+        trip.origin,
+        trip.destination
+      );
+    } else {
+
+      tripUser.status = TripUserStatus.Confirmed;
+      await this.tripUserRepository.save(tripUser);
+
+
+      await this.sendEmail(
+        tripUser.user.email,
+        tripUser.user.name,
+        'aprobada',
+        trip.origin,
+        trip.destination
+      );
+    }
+
+    return {
+      message:
+        tripUser.status === TripUserStatus.Confirmed
+          ? 'La solicitud ha sido aprobada.'
+          : 'La solicitud ha sido rechazada por falta de espacio.',
+      status: tripUser.status,
+    };
+  }
+
+  private async sendEmail(
+    email: string,
+    name: string,
+    status: string,
+    origin: string,
+    destination: string,
+    rejectionReason?: string
+  ) {
+    const subject = status === 'aprobada' ? 'Solicitud Aprobada' : 'Solicitud Rechazada';
+
+
+    const text =
+      status === 'aprobada'
+        ? `Hola ${name},\n\nTu solicitud para unirte al viaje con origen ${origin} hacia destino ${destination} ha sido aprobada. ¡Nos vemos en el viaje!`
+        : `Hola ${name},\n\nLamentablemente, tu solicitud para unirte al viaje con origen ${origin} hacia el destino ${destination} ha sido rechazada.` +
+        (rejectionReason ? ` Motivo: ${rejectionReason}` : '');
+
+    const html =
+      status === 'aprobada'
+        ? `<p>Hola ${name},</p><p>Tu solicitud para unirte al viaje con origen <strong>${origin}</strong> hacia destino <strong>${destination}</strong> ha sido aprobada. ¡Nos vemos en el viaje!</p>`
+        : `Hola ${name},\n\nLamentablemente, tu solicitud para unirte al viaje con origen ${origin} hacia el destino ${destination} ha sido rechazada.` +
+        (rejectionReason ? ` Motivo: ${rejectionReason}` : '');
+
+    const mailOptions = {
+      from: '"TripBook" <tripbook14@gmail.com>',
+      to: email,
+      subject,
+      text,
+      html,
+    };
+
+    await this.transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error al enviar el correo:', error);
+      } else {
+        console.log('Correo enviado:', info.response);
+      }
+    });
+  }
 }

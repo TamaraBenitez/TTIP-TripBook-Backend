@@ -69,5 +69,11 @@ export class User {
 
 
     @Column({ type: 'longtext' })
-    imageDescriptor: string; // Campo para almacenar la imagen en base64
+    imageDescriptor: string; // Campo para almacenar el descriptor de la imagen en base64
+
+    @Column({ type: "varchar", length: 15 })
+    phoneNumber: string;
+
+
+
 }

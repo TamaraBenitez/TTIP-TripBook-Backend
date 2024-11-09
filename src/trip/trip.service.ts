@@ -56,6 +56,7 @@ export class TripService {
   }
 
   async findOneById(id: string) {
+    //Find one trip and return only confirmed tripCoordinates
     const trip = await this.tripRepository.findOne({
       where: { id: id },
       relations: ['tripUsers', 'tripUsers.user'],
@@ -220,4 +221,41 @@ export class TripService {
       await queryRunner.release();
     }
   }
+
+  async getTripsWithPendingPassengers(userId: string) {
+    const trips = await this.tripRepository
+      .createQueryBuilder('trip')
+      .innerJoin('trip.tripUsers', 'driver', 'driver.user_id = :userId AND driver.role = :driverRole', {
+        userId,
+        driverRole: UserRole.DRIVER,
+      })
+      .leftJoinAndSelect('trip.tripUsers', 'tripUser')
+      .leftJoinAndSelect('tripUser.user', 'user')
+      .where('tripUser.status = :pendingStatus AND tripUser.role = :passengerRole', {
+        pendingStatus: TripUserStatus.Pending,
+        passengerRole: UserRole.PASSENGER,
+      })
+      .getMany();
+
+    const tripsWithPendingPassengers = trips.map(trip => {
+      const pendingPassengers = trip.tripUsers
+        .filter(tu => tu.status === TripUserStatus.Pending && tu.role === UserRole.PASSENGER)
+        .map(tu => ({
+          tripUserId: tu.id,
+          name: tu.user.name,
+          surname: tu.user.surname,
+          email: tu.user.email,
+        }));
+
+      return {
+        tripId: trip.id,
+        origin: trip.origin,
+        destination: trip.destination,
+        pendingPassengers,
+      };
+    });
+
+    return tripsWithPendingPassengers;
+  }
+
 }
