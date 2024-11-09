@@ -170,7 +170,7 @@ export class TripService {
       const savedTripUser = await this.tripUserService.registrationTripUser(
         tripUser,
         trip,
-        queryRunner.manager,
+        queryRunner,
       );
       // Create start coordinate
       const startCoordinate = new TripCoordinate();

@@ -7,9 +7,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
-import { TripUser, TripUserStatus, UserRole } from './entities/trip-user.entity';
+import {
+  TripUser,
+  TripUserStatus,
+  UserRole,
+} from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, In, QueryRunner, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { TripService } from '../trip/trip.service';
 import { ListTripResponseDto } from '../trip/dto/list-trip.dto';
@@ -27,110 +31,73 @@ export class TripUserService {
     @Inject(forwardRef(() => TripService))
     private readonly tripService: TripService,
     private readonly dataSource: DataSource,
-    private readonly tripCoordinateService: TripCoordinateService
-  ) { }
+    private readonly tripCoordinateService: TripCoordinateService,
+  ) {}
 
-  async registrationTripUser(createTripUserDto: CreateTripUserDto, tripDetails?: Trip, manager?: EntityManager) {
-    const queryRunner = manager ? null : this.dataSource.createQueryRunner();
-
-    if (queryRunner) {
-      await queryRunner.startTransaction();
-    }
-    const { userId, tripId, role } = createTripUserDto;
-    const existingEnrollment = await this.tripUserRepository.findOne({
-      where: { user: { id: userId }, trip: { id: tripId } },
-    });
+  async registrationTripUser(
+    createTripUserDto: CreateTripUserDto,
+    tripDetails?: Trip,
+    queryRunner?: QueryRunner,
+  ) {
+    const { userId } = createTripUserDto;
     let trip = tripDetails;
 
-    if (existingEnrollment) {
-      throw new BadRequestException(
-        'El usuario ya esta inscripto en este viaje',
-      );
-    }
     const user = await this.userService.findOneById(userId);
     if (!user) {
       throw new NotFoundException('El usuario no existe en la plataforma');
     }
-
-    if (!trip) { //User registering to an existing trip
-      trip = await this.tripService.findTripEntityById(tripId);
+    const conflictingEnrollment = await this.tripUserRepository.findOne({
+      where: {
+        user: { id: userId },
+        trip: { startDate: trip.startDate },
+        status: In([TripUserStatus.Confirmed, TripUserStatus.Pending]),
+      },
+    });
+    if (conflictingEnrollment) {
+      throw new BadRequestException(
+        'El usuario ya está inscripto en otro viaje en la misma fecha',
+      );
     }
-
     try {
       const tripUser = this.tripUserRepository.create({
         user: user,
         trip: trip,
         joinDate: new Date(),
         status: TripUserStatus.Confirmed,
-        role: role ?? UserRole.PASSENGER,
+        role: UserRole.DRIVER,
       });
 
-      // Use the provided manager or the queryRunner's manager to save
-      if (manager) {
-        await manager.save(tripUser);
-      } else {
-        await queryRunner.manager.save(tripUser);
-      }
-
-      if (tripUser.role === UserRole.PASSENGER) {
-        // Get the driver's start coordinate
-        const driverCoordinate = await this.tripCoordinateService.getStartCoordinateByTripId(trip.id);
-
-        if (driverCoordinate) {
-          const passengerCoordinate = new TripCoordinate();
-          passengerCoordinate.latitude = driverCoordinate.latitude;  // Use driver's start latitude
-          passengerCoordinate.longitude = driverCoordinate.longitude;  // Use driver's start longitude
-          passengerCoordinate.isStart = false; // Passenger's point, not start
-          passengerCoordinate.isEnd = false;
-          passengerCoordinate.tripUser = tripUser;
-
-          // Save the passenger coordinate
-          if (manager) {
-            await manager.save(passengerCoordinate);
-          } else {
-            await queryRunner.manager.save(passengerCoordinate);
-          }
-        }
-      }
-
-      if (!manager) {
-        await queryRunner.commitTransaction(); // Commit only if using queryRunner
-      }
+      await queryRunner.manager.save(tripUser);
 
       return tripUser;
-
     } catch (error) {
-      if (queryRunner) {
-        await queryRunner.rollbackTransaction(); // Rollback only if using queryRunner
-      }
+      await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(error);
     } finally {
-      if (queryRunner) {
-        await queryRunner.release(); // Release only if using queryRunner
-      }
+      await queryRunner.release();
     }
   }
 
-  async registerPassengerWithOtherCoordinates(createPassengerDto: CreateTripWithOtherCoordinates) {
-
+  async registerPassengerWithOtherCoordinates(
+    createPassengerDto: CreateTripWithOtherCoordinates,
+  ) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.startTransaction();
     const { userId, tripId, latitude, longitude } = createPassengerDto;
     try {
-
       const existingEnrollment = await this.tripUserRepository.findOne({
         where: { user: { id: userId }, trip: { id: tripId } },
       });
       if (existingEnrollment) {
-        throw new BadRequestException('El usuario ya está inscripto en este viaje');
+        throw new BadRequestException(
+          'El usuario ya está inscripto en este viaje',
+        );
       }
-
 
       const user = await this.userService.findOneById(userId);
       if (!user) {
         throw new NotFoundException('El usuario no existe en la plataforma');
       }
-
 
       const trip = await this.tripService.findTripEntityById(tripId);
       if (!trip) {
@@ -141,21 +108,23 @@ export class TripUserService {
         where: { trip: { id: tripId } },
       });
       if (currentPassengersCount >= trip.maxPassengers) {
-        throw new BadRequestException('El viaje ha alcanzado su límite máximo de pasajeros');
+        throw new BadRequestException(
+          'El viaje ha alcanzado su límite máximo de pasajeros',
+        );
       }
 
       const conflictingEnrollment = await this.tripUserRepository.findOne({
         where: {
           user: { id: userId },
           trip: { startDate: trip.startDate },
+          status: In([TripUserStatus.Confirmed, TripUserStatus.Pending]),
         },
       });
       if (conflictingEnrollment) {
         throw new BadRequestException(
-          'El usuario ya está inscripto en otro viaje en la misma fecha'
+          'El usuario ya está inscripto en otro viaje en la misma fecha',
         );
       }
-
 
       const tripUser = this.tripUserRepository.create({
         user: user,
@@ -166,7 +135,6 @@ export class TripUserService {
       });
 
       await queryRunner.manager.save(tripUser);
-
 
       const passengerCoordinate = new TripCoordinate();
       passengerCoordinate.latitude = latitude;
@@ -179,7 +147,6 @@ export class TripUserService {
 
       await queryRunner.commitTransaction();
       return tripUser;
-
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(error);
@@ -188,10 +155,10 @@ export class TripUserService {
     }
   }
 
-
-
-
-  async findTripsByUser(userId: string, role: UserRole): Promise<ListTripResponseDto[]> {
+  async findTripsByUser(
+    userId: string,
+    role: UserRole,
+  ): Promise<ListTripResponseDto[]> {
     const trips = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
@@ -220,13 +187,14 @@ export class TripUserService {
       tripDto.description = tu.trip.description;
       tripDto.estimatedCost = tu.trip.estimatedCost;
       tripDto.maxPassengers = tu.trip.maxPassengers;
-      tripDto.registrants = tu.trip.tripUsers.length ? (tu.trip.tripUsers.length - 1) : 0;
+      tripDto.registrants = tu.trip.tripUsers.length
+        ? tu.trip.tripUsers.length - 1
+        : 0;
       return tripDto;
     });
 
     return ret;
   }
-
 
   async getRequestDetails(tripUserId: string, tripId: string) {
     // Obtener el tripUser principal con estado pendiente
@@ -235,23 +203,29 @@ export class TripUserService {
       .innerJoinAndSelect('tripUser.user', 'user')
       .leftJoinAndSelect('tripUser.tripCoordinates', 'tripCoordinate')
       .where('tripUser.id = :tripUserId', { tripUserId })
-      .andWhere('tripUser.status = :pendingStatus', { pendingStatus: TripUserStatus.Pending })
+      .andWhere('tripUser.status = :pendingStatus', {
+        pendingStatus: TripUserStatus.Pending,
+      })
       .getOne();
 
     if (!tripUser) {
-      throw new BadRequestException('Pending passenger not found or not in pending status.');
+      throw new BadRequestException(
+        'Pending passenger not found or not in pending status.',
+      );
     }
 
     // Resolver las tripCoordinates del tripUser principal
     const coordinates = await tripUser.tripCoordinates;
 
-    // Obtener los tripUsers confirmados asociados al tripId 
+    // Obtener los tripUsers confirmados asociados al tripId
     const confirmedTripUsers = await this.tripUserRepository
       .createQueryBuilder('tripUser')
       .innerJoinAndSelect('tripUser.user', 'user')
       .leftJoinAndSelect('tripUser.tripCoordinates', 'tripCoordinate')
       .where('tripUser.trip.id = :tripId', { tripId })
-      .andWhere('tripUser.status = :confirmedStatus', { confirmedStatus: TripUserStatus.Confirmed })
+      .andWhere('tripUser.status = :confirmedStatus', {
+        confirmedStatus: TripUserStatus.Confirmed,
+      })
       .getMany();
 
     // Obtener las coordenadas de los tripUsers confirmados utilizando la lógica de mapeo
@@ -280,12 +254,10 @@ export class TripUserService {
         isEnd: coordinate.isEnd,
       })),
       coordinatesConfirmed: coordinatesConfirmed.flat(),
-      destination:"DESTINATION",
-      startDate:"STARTDATE",
-      origin:"ORIGIN",
-      contact: 2214444444
+      destination: 'DESTINATION',
+      startDate: 'STARTDATE',
+      origin: 'ORIGIN',
+      contact: 2214444444,
     };
   }
-
-
 }
