@@ -58,7 +58,8 @@ const exampleTripDto = {
   description: 'testdecription',
   estimatedCost: 999,
   maxPassengers: 3,
-  userId: "testId"
+  userId: "testId",
+  maxTolerableDistance:5000
 };
 const mockManager = {
   save: jest.fn().mockResolvedValue(exampleTrip),

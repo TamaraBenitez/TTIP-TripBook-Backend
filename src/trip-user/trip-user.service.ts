@@ -282,13 +282,13 @@ export class TripUserService {
       origin: trip.trip.origin,
       destination: trip.trip.destination,
       startDate: trip.trip.startDate,
-      coordinates: coordinates.map((coordinate) => ({
+      requesterCoordinates: coordinates.map((coordinate) => ({
         latitude: coordinate.latitude,
         longitude: coordinate.longitude,
         isStart: coordinate.isStart,
         isEnd: coordinate.isEnd,
-      })),
-      coordinatesConfirmed: coordinatesConfirmed.flat(),
+      })).flat(),
+      tripCoordinates: coordinatesConfirmed.flat(),
       contact: tripUser.user.phoneNumber
     };
   }

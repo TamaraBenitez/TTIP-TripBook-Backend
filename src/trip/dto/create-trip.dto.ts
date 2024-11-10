@@ -1,42 +1,45 @@
-import { IsString, IsNumber, IsDate, IsNotEmpty, IsObject, IsDateString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsNumber, IsDate, IsNotEmpty, IsObject, IsDateString, IsArray, ValidateNested } from 'class-validator';
 
 export class CreateTripDto {
     @IsString()
     @IsNotEmpty()
     origin: string;
-
+  
     @IsString()
     @IsNotEmpty()
     destination: string;
-
-    @IsObject()
-    startPoint: {
-        latitude: number;
-        longitude: number;
-    };
-
-    @IsObject()
-    endPoint: {
-        latitude: number;
-        longitude: number;
-    };
-
+  
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => CoordinateDto)
+    @IsNotEmpty()
+    coordinates: CoordinateDto[];
+  
     @IsDateString()
     startDate: Date;
-
+  
     @IsString()
     description: string;
-
+  
     @IsNumber()
     estimatedCost: number;
-
+  
     @IsNumber()
     maxPassengers: number;
-
+  
     @IsNumber()
-    maxTolerableDistance: number
-
+    maxTolerableDistance: number;
+  
     @IsString()
     @IsNotEmpty()
     userId: string;
-}
+  }
+  
+  export class CoordinateDto {
+    @IsNumber()
+    latitude: number;
+  
+    @IsNumber()
+    longitude: number;
+  }
