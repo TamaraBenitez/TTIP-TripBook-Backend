@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TripService } from './trip.service';
-import { DataSource } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Trip } from './entities/trip.entity';
 import { TripUserService } from '../trip-user/trip-user.service';
@@ -10,16 +10,48 @@ import { TripUser, TripUserStatus, UserRole } from '../trip-user/entities/trip-u
 import { User } from '../user/entities/user.entity';
 import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
 import { ConfigModule } from '@nestjs/config';
+import { CoordinateDto } from './dto/create-trip.dto';
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 
 //TEST DATA & MOCKS
+const mockCoordinates :CoordinateDto[]= [
+  {
+    "latitude": -29.431193,
+    "longitude": -66.86824
+  },
+  {
+    "latitude": -33.282899,
+    "longitude": -66.301932
+  },
+  {
+    "latitude": -34.598132,
+    "longitude": -60.940053
+  },
+  {
+    "latitude": -37.326843,
+    "longitude": -59.143076
+  }
+];
+const exampleTripDto = {
+  id: 'testid',
+  origin: 'testorigin',
+  destination: 'testdestination',
+  coordinates: mockCoordinates,
+  startDate: new Date(),
+  description: 'testdecription',
+  estimatedCost: 999,
+  maxPassengers: 3,
+  userId: "testId",
+  maxTolerableDistance:5000
+};
 const exampleCreateTrip = {
   origin: 'testorigin',
   destination: 'testdestination',
   startDate: new Date(),
   description: 'testdecription',
   estimatedCost: 999,
-  maxPassengers: 3
+  maxPassengers: 3,
+  maxTolerableDistance: exampleTripDto.maxTolerableDistance
 }
 const exampleTrip = {
   id: 'testid',
@@ -42,24 +74,7 @@ const exampleTripUser = {
   status: TripUserStatus.Confirmed,
   role: UserRole.DRIVER,
 }
-const exampleTripDto = {
-  id: 'testid',
-  origin: 'testorigin',
-  destination: 'testdestination',
-  startPoint: {
-    latitude: 51.505,
-    longitude: -0.09
-  },
-  endPoint: {
-    latitude: 51.505,
-    longitude: -0.09
-  },
-  startDate: new Date(),
-  description: 'testdecription',
-  estimatedCost: 999,
-  maxPassengers: 3,
-  userId: "testId"
-};
+
 const mockManager = {
   save: jest.fn().mockResolvedValue(exampleTrip),
 }
@@ -152,7 +167,7 @@ describe('TripService', () => {
   it('should be defined', () => {
     expect(tripService).toBeDefined();
   });
-  it('should call tripRepository findAll', async () => {
+  it('should call tripRepository findAll when trip service "findAll" is called', async () => {
     jest.spyOn(mockTripRepository, 'find');
 
     const result = await tripService.findAll();
@@ -179,13 +194,13 @@ describe('TripService', () => {
       'El viaje no existe en la plataforma'
     );
   });
-  it('should findOneById', async () => {
+  it('should call trip repository "findOne" when trip service calls "findOneById"', async () => {
     mockTripRepository.findOne.mockResolvedValueOnce(exampleTrip);
     jest.spyOn(mockTripRepository, 'findOne');
     await tripService.findOneById(exampleTrip.id);
     expect(mockTripRepository.findOne).toHaveBeenCalled();
   });
-  it('should create a trip', async () => {
+  it('should make corresponding calls when trip service calls "createTrip"', async () => {
     mockTripRepository.create.mockResolvedValueOnce(exampleTrip);
     jest.spyOn(mockTripRepository, 'create');
     jest.spyOn(mockQueryRunnerResult, 'startTransaction');
@@ -198,14 +213,14 @@ describe('TripService', () => {
     await tripService.createTrip(exampleTripDto);
     expect(dataSourceMock.createQueryRunner).toHaveBeenCalled();
     expect(mockQueryRunnerResult.startTransaction).toHaveBeenCalled();
-    expect(mockManager.save).toHaveBeenCalledTimes(4);
+    expect(mockManager.save).toHaveBeenCalledTimes(mockCoordinates.length + 2); //one for each trip coordinate, one for the trip and one for the tripUser
     expect(mockTripUserRepository.findOne).toHaveBeenCalledWith({
-      where: { user: { id: exampleTripDto.userId }, trip: { id: exampleTrip.id } },
-    })
+      where: { user: { id: exampleTripDto.userId }, trip: { startDate: exampleTrip.startDate }, status: In([TripUserStatus.Confirmed, TripUserStatus.Pending]) },
+    });
     expect(mockTripUserRepository.create).toHaveBeenCalledWith({
       user: exampleUser,
       trip: exampleCreateTrip,
-      joinDate: new Date(),
+      joinDate: exampleTripDto.startDate,
       status: "confirmed",
       role: "driver"
     });

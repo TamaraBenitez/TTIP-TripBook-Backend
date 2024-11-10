@@ -10,19 +10,30 @@ const tripId1 = uuidv4();
 const testTripDto: CreateTripDto = {
   origin: 'City A',
   destination: 'City B',
-  startPoint: {
-    latitude: 34.052235,
-    longitude: -118.243683
-  },
-  endPoint: {
-    latitude: 36.169941, 
-    longitude: -115.139830
-  },
+  coordinates: [
+    {
+      "latitude": -29.431193,
+      "longitude": -66.86824
+    },
+    {
+      "latitude": -33.282899,
+      "longitude": -66.301932
+    },
+    {
+      "latitude": -34.598132,
+      "longitude": -60.940053
+    },
+    {
+      "latitude": -37.326843,
+      "longitude": -59.143076
+    }
+  ],
   startDate: new Date('2024-11-01T09:00:00Z'), 
   description: 'A trip from City A to City B', 
   estimatedCost: 100.50,  
   maxPassengers: 4,      
-  userId: 'a1234b5678c9d0e12345f6g7h8i9j0kl'
+  userId: 'a1234b5678c9d0e12345f6g7h8i9j0kl',
+  maxTolerableDistance:5000
 };
 
 
