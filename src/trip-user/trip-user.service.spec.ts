@@ -8,10 +8,21 @@ import { TripService } from '../trip/trip.service';
 import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.service';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Trip } from 'src/trip/entities/trip.entity';
 
 describe('TripUserService', () => {
   let service: TripUserService;
   let tripUserRepository: Repository<TripUser>;
+  let tripService: TripService
+
+  const createQueryBuilderMock = {
+    innerJoinAndSelect: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getOne: jest.fn(),
+    getMany: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,7 +30,12 @@ describe('TripUserService', () => {
         TripUserService,
         {
           provide: getRepositoryToken(TripUser),
-          useClass: Repository,
+          useValue: {
+            createQueryBuilder: jest.fn(() => createQueryBuilderMock),
+            findOne: jest.fn(),
+            save: jest.fn(),
+            count: jest.fn(),
+          },
         },
         {
           provide: UserService,
@@ -31,6 +47,7 @@ describe('TripUserService', () => {
           provide: TripService,
           useValue: {
             findTripById: jest.fn(),
+            findTripEntityById: jest.fn()
           },
         },
         {
@@ -64,10 +81,30 @@ describe('TripUserService', () => {
     service = module.get<TripUserService>(TripUserService);
     tripUserRepository = module.get<Repository<TripUser>>(getRepositoryToken(TripUser));
     service['sendEmail'] = jest.fn();
+    tripService = module.get<TripService>(TripService);
+
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('getRequestDetails', () => {
+
+    it('debe lanzar BadRequestException si no se encuentra el trip', async () => {
+      const tripUserId = 'trip-user-id';
+
+      createQueryBuilderMock.getOne
+        .mockResolvedValueOnce({
+          id: tripUserId,
+          status: TripUserStatus.Pending,
+        })
+        .mockResolvedValueOnce(null);
+
+      await expect(service.getRequestDetails(tripUserId, 'invalid-tripId')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 
   describe('rejectRequest', () => {
