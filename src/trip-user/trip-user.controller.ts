@@ -4,6 +4,7 @@ import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
 import { UserRole } from './entities/trip-user.entity';
+import { RejectRequestDto } from './dto/reject-request.dto';
 
 
 @ApiTags('TripUser')
@@ -30,6 +31,18 @@ export class TripUserController {
   @Get('/requestDetails/:tripUserId/:tripId')
   async getPassengerDetails(@Param('tripUserId') tripUserId: string, @Param('tripId') tripId: string) {
     return await this.tripUserService.getRequestDetails(tripUserId, tripId);
+  }
+
+  @Post('/acceptRequest/:tripUserId')
+  async acceptRequest(@Param('tripUserId') tripUserId: string) {
+    return await this.tripUserService.acceptRequest(tripUserId)
+  }
+
+  @Post('/rejectRequest/:tripUserId')
+  async rejectRequest(@Param('tripUserId') tripUserId: string,
+    @Body() rejectRequestDto: RejectRequestDto) {
+    const { rejectionReason } = rejectRequestDto;
+    return await this.tripUserService.rejectRequest(tripUserId, rejectionReason)
   }
 
 

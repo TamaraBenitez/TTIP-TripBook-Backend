@@ -23,7 +23,7 @@ describe('AuthService', () => {
     name: 'Test',
     surname: 'User',
     email: 'user@example.com',
-    password: 'hashed-password', // Asegúrate de que la contraseña esté hasheada si es necesario para la prueba
+    password: 'hashed-password',
     nroDni: '12345678',
     nroTramiteDni: '87654321',
     gender: Gender.MALE,
@@ -36,8 +36,9 @@ describe('AuthService', () => {
     isUserVerified: true,
     emailVerificationToken: null,
     emailVerificationTokenExpires: null,
-    tripUsers: [], // Puedes dejar esto como un array vacío si no es relevante para la prueba
+    tripUsers: [],
     imageDescriptor: 'base64string',
+    phoneNumber: '5491187654321'
   };
 
   const loginDto = { email: 'user@example.com', password: 'password' };

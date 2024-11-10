@@ -9,6 +9,7 @@ import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.servic
 import { TripUser, TripUserStatus, UserRole } from '../trip-user/entities/trip-user.entity';
 import { User } from '../user/entities/user.entity';
 import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
+import { ConfigModule } from '@nestjs/config';
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 
 //TEST DATA & MOCKS
@@ -119,6 +120,7 @@ describe('TripService', () => {
   let dataSourceMock: MockType<DataSource>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [ConfigModule],
       providers: [
         { provide: DataSource, useFactory: dataSourceMockFactory },
         TripService,
