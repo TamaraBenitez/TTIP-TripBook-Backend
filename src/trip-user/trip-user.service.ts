@@ -242,7 +242,7 @@ export class TripUserService {
       .where('tripUser.trip.id = :tripId', { tripId })
       .getOne();
 
-    if (!trip || !trip.trip) {
+    if (!trip) {
       throw new BadRequestException('Trip not found.');
     }
 
