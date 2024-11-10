@@ -41,7 +41,7 @@ export class TripService {
     return trips.map((trip) => this.mapToListTripResponseDto(trip));
   }
   private mapToListTripResponseDto(trip: Trip): ListTripResponseDto {
-    const registrantsCount = trip.tripUsers.length;
+    const registrantsCount = trip.tripUsers.length ? trip.tripUsers.length - 1 : trip.tripUsers.length; //registrants except the driver
 
     return {
       id: trip.id,
@@ -92,7 +92,7 @@ export class TripService {
     tripDetails.estimatedCost = trip.estimatedCost;
     tripDetails.maxPassengers = trip.maxPassengers;
     tripDetails.participants = participants;
-    tripDetails.tripCoordinates = tripCoordinates;
+    tripDetails.tripCoordinates = tripCoordinates.flat();
 
     return tripDetails;
   }
@@ -114,11 +114,10 @@ export class TripService {
   ): Promise<TripDetailsResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.startTransaction();
-
+  
     try {
       const {
-        startPoint,
-        endPoint,
+        coordinates,
         startDate,
         description,
         estimatedCost,
@@ -126,8 +125,9 @@ export class TripService {
         destination,
         userId,
         maxPassengers,
+        maxTolerableDistance
       } = createTripDto;
-
+  
       const startDateOnly = format(new Date(startDate), 'yyyy-MM-dd');
 
       const existingTrip = await this.tripRepository
@@ -143,7 +143,7 @@ export class TripService {
       if (existingTrip) {
         throw new BadRequestException('Ya tienes un viaje creado en la misma fecha');
       }
-
+  
       // Create the trip entity
       const trip = new Trip();
       trip.origin = origin;
@@ -152,44 +152,40 @@ export class TripService {
       trip.description = description;
       trip.estimatedCost = estimatedCost;
       trip.maxPassengers = maxPassengers;
-
+      trip.maxTolerableDistance = maxTolerableDistance;
+  
       // Save the trip
       const savedTrip = await queryRunner.manager.save(trip);
-
+  
       // Create TripUser
       const tripUser = new CreateTripUserDto();
       tripUser.userId = userId;
       tripUser.tripId = savedTrip.id;
-      tripUser.joinDate = new Date(); // Current date when the trip is created
+      tripUser.joinDate = new Date();
       tripUser.status = TripUserStatus.Confirmed;
-      tripUser.role = UserRole.DRIVER; // Assign as the driver
-
-      // Save the TripUser
+      tripUser.role = UserRole.DRIVER;
+  
       const savedTripUser = await this.tripUserService.registrationTripUser(
         tripUser,
         trip,
-        queryRunner.manager,
+        queryRunner,
       );
-      // Create start coordinate
-      const startCoordinate = new TripCoordinate();
-      startCoordinate.latitude = startPoint.latitude;
-      startCoordinate.longitude = startPoint.longitude;
-      startCoordinate.isStart = true;
-      startCoordinate.tripUser = savedTripUser;
-
-      // Create end coordinate
-      const endCoordinate = new TripCoordinate();
-      endCoordinate.latitude = endPoint.latitude;
-      endCoordinate.longitude = endPoint.longitude;
-      endCoordinate.isEnd = true;
-      endCoordinate.tripUser = savedTripUser;
-
-      // Save the coordinates
-      await queryRunner.manager.save(startCoordinate);
-      await queryRunner.manager.save(endCoordinate);
-
+  
+      // Create and save coordinates
+      for (let i = 0; i < coordinates.length; i++) {
+        const coord = coordinates[i];
+        const tripCoordinate = new TripCoordinate();
+        tripCoordinate.latitude = coord.latitude;
+        tripCoordinate.longitude = coord.longitude;
+        tripCoordinate.isStart = i === 0; // Set true for the first coordinate
+        tripCoordinate.isEnd = i === coordinates.length - 1; // Set true for the last coordinate
+        tripCoordinate.tripUser = savedTripUser;
+  
+        await queryRunner.manager.save(tripCoordinate);
+      }
+  
       await queryRunner.commitTransaction();
-
+  
       // Return the trip details as a DTO
       const tripDetails = new TripDetailsResponseDto();
       tripDetails.id = savedTrip.id;
@@ -199,6 +195,7 @@ export class TripService {
       tripDetails.description = savedTrip.description;
       tripDetails.estimatedCost = savedTrip.estimatedCost;
       tripDetails.maxPassengers = savedTrip.maxPassengers;
+      tripDetails.maxTolerableDistance = savedTrip.maxTolerableDistance;
 
       const user = await this.userService.findOneById(userId);
       // Include the driver in the participants

@@ -24,6 +24,9 @@ export class Trip {
     @Column({ type: 'int'})
     maxPassengers: number;
 
+    @Column({ type: 'int', default: 2500})
+    maxTolerableDistance: number;
+
     @OneToMany(() => TripUser, (tripUser) => tripUser.trip)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
 }

@@ -9,6 +9,7 @@ export class TripDetailsResponseDto {
     description: string;
     estimatedCost: number;
     maxPassengers: number;
+    maxTolerableDistance: number;
     participants: UserDetailsResponseDto[];
     tripCoordinates:TripCoordinateDetailsDto[];
   }
