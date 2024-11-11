@@ -93,6 +93,7 @@ export class TripService {
     tripDetails.maxPassengers = trip.maxPassengers;
     tripDetails.participants = participants;
     tripDetails.tripCoordinates = tripCoordinates.flat();
+    tripDetails.maxTolerableDistance = trip.maxTolerableDistance
 
     return tripDetails;
   }
