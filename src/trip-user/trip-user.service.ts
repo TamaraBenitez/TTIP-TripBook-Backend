@@ -123,7 +123,7 @@ export class TripUserService {
       const currentPassengersCount = await this.tripUserRepository.count({
         where: { trip: { id: tripId } },
       });
-      if (currentPassengersCount >= trip.maxPassengers) {
+      if ((currentPassengersCount - 1) >= trip.maxPassengers) {
         throw new BadRequestException(
           'El viaje ha alcanzado su límite máximo de pasajeros',
         );
