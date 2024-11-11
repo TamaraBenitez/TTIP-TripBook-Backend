@@ -209,6 +209,7 @@ export class TripUserService {
       tripDto.description = tu.trip.description;
       tripDto.estimatedCost = tu.trip.estimatedCost;
       tripDto.maxPassengers = tu.trip.maxPassengers;
+      tripDto.status = tu.status;
       tripDto.registrants = tu.trip.tripUsers.length
         ? tu.trip.tripUsers.length - 1
         : 0;
