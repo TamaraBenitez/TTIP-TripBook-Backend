@@ -7,9 +7,8 @@ import { CompareImageService } from '../compare-image/compare-image.service';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Gender, User } from '../user/entities/user.entity';
-import { plainToInstance } from 'class-transformer';
 import { RegisterDto } from './dto/register.dto';
-import { UserResponseDto } from '../trip-user/dto/user.dto';
+
 
 
 describe('AuthService', () => {
@@ -255,6 +254,7 @@ describe('AuthService', () => {
       locality: 'TestLocality',
       latitud: 10.0,
       longitud: 20.0,
+      phoneNumber: '5491198765432'
     };
     const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
 
@@ -278,6 +278,7 @@ describe('AuthService', () => {
       locality: 'TestLocality',
       latitud: 10.0,
       longitud: 20.0,
+      phoneNumber: '5491198765432'
     };
     const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
 

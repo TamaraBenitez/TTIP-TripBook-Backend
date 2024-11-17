@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsDateString, IsEmail, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsDateString, IsEmail, IsNumber, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class RegisterDto {
 
@@ -15,6 +15,8 @@ export class RegisterDto {
 
     @IsDateString()
     birthDate: Date
+
+
 
     @Transform(({ value }) => value.trim())
     @IsString()
@@ -44,6 +46,14 @@ export class RegisterDto {
     @ApiProperty({ type: 'string', format: 'binary', required: true })
     dniPhoto?: any;
 
+
+    @ApiProperty({ description: 'Phone number in the format 54911........' })
+    @Transform(({ value }) => value.trim())
+    @IsString()
+    @Matches(/^[1-9]\d{10,14}$/, {
+        message: 'Phone number must be in the format 54911........',
+    })
+    phoneNumber: string;
 
     // @IsOptional()
     // @IsArray()
