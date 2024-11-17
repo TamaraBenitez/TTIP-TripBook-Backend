@@ -41,7 +41,8 @@ describe('UserService', () => {
       email: 'test@example.com',
       birthDate: new Date('1990-01-01'),
       password: 'testpass',
-      dniPhoto: Buffer.from('fake-image-binary-data')
+      dniPhoto: Buffer.from('fake-image-binary-data'),
+      phoneNumber: '5491187654321'
     };
 
     await service.createUser(createUserDto);
