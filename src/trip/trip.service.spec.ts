@@ -14,7 +14,7 @@ import { CoordinateDto } from './dto/create-trip.dto';
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 
 //TEST DATA & MOCKS
-const mockCoordinates :CoordinateDto[]= [
+const mockCoordinates: CoordinateDto[] = [
   {
     "latitude": -29.431193,
     "longitude": -66.86824
@@ -42,7 +42,7 @@ const exampleTripDto = {
   estimatedCost: 999,
   maxPassengers: 3,
   userId: "testId",
-  maxTolerableDistance:5000
+  maxTolerableDistance: 5000
 };
 const exampleCreateTrip = {
   origin: 'testorigin',
@@ -104,6 +104,8 @@ const mockTripRepository = {
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     getOne: jest.fn().mockResolvedValue(null),
+    getMany: jest.fn().mockResolvedValue([exampleTrip]),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
   })),
 };
 const mockTripUserRepository = {
@@ -170,7 +172,7 @@ describe('TripService', () => {
   it('should call tripRepository findAll when trip service "findAll" is called', async () => {
     jest.spyOn(mockTripRepository, 'find');
 
-    const result = await tripService.findAll();
+    const result = await tripService.findAll({});
     expect(mockTripRepository.find).toHaveBeenCalledWith({
       relations: ['tripUsers'],
     });
