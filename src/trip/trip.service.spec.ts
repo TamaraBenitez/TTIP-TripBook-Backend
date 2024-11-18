@@ -170,12 +170,11 @@ describe('TripService', () => {
     expect(tripService).toBeDefined();
   });
   it('should call tripRepository findAll when trip service "findAll" is called', async () => {
-    jest.spyOn(mockTripRepository, 'find');
+    const spyCreateQueryBuilder = jest.spyOn(mockTripRepository, 'createQueryBuilder');
 
-    const result = await tripService.findAll({});
-    expect(mockTripRepository.find).toHaveBeenCalledWith({
-      relations: ['tripUsers'],
-    });
+    const result = await tripService.findAll({ origin: 'testorigin' });
+
+    expect(spyCreateQueryBuilder).toHaveBeenCalledWith('trip');
     expect(result).toEqual([
       {
         id: exampleTrip.id,
