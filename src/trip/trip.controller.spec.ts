@@ -28,18 +28,18 @@ const testTripDto: CreateTripDto = {
       "longitude": -59.143076
     }
   ],
-  startDate: new Date('2024-11-01T09:00:00Z'), 
-  description: 'A trip from City A to City B', 
-  estimatedCost: 100.50,  
-  maxPassengers: 4,      
+  startDate: new Date('2024-11-01T09:00:00Z'),
+  description: 'A trip from City A to City B',
+  estimatedCost: 100.50,
+  maxPassengers: 4,
   userId: 'a1234b5678c9d0e12345f6g7h8i9j0kl',
-  maxTolerableDistance:5000
+  maxTolerableDistance: 5000
 };
 
 
 describe('TripController', () => {
   let controller: TripController;
-  
+
   const tripService = {
     provide: TripService,
     useValue: {
@@ -52,11 +52,11 @@ describe('TripController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripController],
       providers: [
-       tripService
+        tripService
       ],
       exports: [TripService],
     }).compile();
-    
+
     controller = module.get<TripController>(TripController);
   });
 
@@ -65,7 +65,7 @@ describe('TripController', () => {
   });
   it('should call TripService findAll', async () => {
     jest.spyOn(tripService.useValue, 'findAll');
-    await controller.findAll();
+    await controller.findAll({});
     expect(tripService.useValue.findAll).toHaveBeenCalled()
   });
   it('should call TripService findOneById', async () => {
