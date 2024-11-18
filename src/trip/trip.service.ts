@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Between, DataSource, FindOptionsWhere, Repository } from 'typeorm';
 import { Trip } from './entities/trip.entity';
 import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import {
@@ -21,6 +21,7 @@ import { UserService } from '../user/user.service';
 import { NotFoundException } from '@zxing/library';
 import { ListTripResponseDto } from './dto/list-trip.dto';
 import { format } from 'date-fns';
+import { TripFiltersDto } from './dto/filters-trip-dto';
 
 
 @Injectable()
@@ -35,9 +36,25 @@ export class TripService {
     private readonly dataSource: DataSource,
   ) { }
 
-  async findAll() {
-    const trips: Trip[] = await this.tripRepository.find({ relations: ['tripUsers'] });
+  async findAll(filters: TripFiltersDto) {
 
+    const queryBuilder = this.tripRepository.createQueryBuilder('trip');
+
+    if (filters.origin) {
+      queryBuilder.andWhere('trip.origin = :origin', { origin: filters.origin });
+    }
+
+    if (filters.destination) {
+      queryBuilder.andWhere('trip.destination = :destination', { destination: filters.destination });
+    }
+
+    if (filters.startDate) {
+      queryBuilder.andWhere('DATE(trip.startDate) = :startDate', { startDate: filters.startDate });
+    }
+
+    queryBuilder.leftJoinAndSelect('trip.tripUsers', 'tripUsers');
+
+    const trips = await queryBuilder.getMany();
     return trips.map((trip) => this.mapToListTripResponseDto(trip));
   }
   private mapToListTripResponseDto(trip: Trip): ListTripResponseDto {
@@ -115,7 +132,7 @@ export class TripService {
   ): Promise<TripDetailsResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.startTransaction();
-  
+
     try {
       const {
         coordinates,
@@ -128,7 +145,7 @@ export class TripService {
         maxPassengers,
         maxTolerableDistance
       } = createTripDto;
-  
+
       const startDateOnly = format(new Date(startDate), 'yyyy-MM-dd');
 
       const existingTrip = await this.tripRepository
@@ -144,7 +161,7 @@ export class TripService {
       if (existingTrip) {
         throw new BadRequestException('Ya tienes un viaje creado en la misma fecha');
       }
-  
+
       // Create the trip entity
       const trip = new Trip();
       trip.origin = origin;
@@ -154,10 +171,10 @@ export class TripService {
       trip.estimatedCost = estimatedCost;
       trip.maxPassengers = maxPassengers;
       trip.maxTolerableDistance = maxTolerableDistance;
-  
+
       // Save the trip
       const savedTrip = await queryRunner.manager.save(trip);
-  
+
       // Create TripUser
       const tripUser = new CreateTripUserDto();
       tripUser.userId = userId;
@@ -165,13 +182,13 @@ export class TripService {
       tripUser.joinDate = new Date();
       tripUser.status = TripUserStatus.Confirmed;
       tripUser.role = UserRole.DRIVER;
-  
+
       const savedTripUser = await this.tripUserService.registrationTripUser(
         tripUser,
         trip,
         queryRunner,
       );
-  
+
       // Create and save coordinates
       for (let i = 0; i < coordinates.length; i++) {
         const coord = coordinates[i];
@@ -181,12 +198,12 @@ export class TripService {
         tripCoordinate.isStart = i === 0; // Set true for the first coordinate
         tripCoordinate.isEnd = i === coordinates.length - 1; // Set true for the last coordinate
         tripCoordinate.tripUser = savedTripUser;
-  
+
         await queryRunner.manager.save(tripCoordinate);
       }
-  
+
       await queryRunner.commitTransaction();
-  
+
       // Return the trip details as a DTO
       const tripDetails = new TripDetailsResponseDto();
       tripDetails.id = savedTrip.id;
