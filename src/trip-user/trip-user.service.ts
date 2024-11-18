@@ -23,6 +23,7 @@ import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.servic
 import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { FilterTripsDto } from './dto/filters-trip-user.dto';
 
 @Injectable()
 export class TripUserService {
@@ -180,13 +181,29 @@ export class TripUserService {
   async findTripsByUser(
     userId: string,
     role: UserRole,
+    filters: FilterTripsDto
   ): Promise<ListTripResponseDto[]> {
-    const trips = await this.tripUserRepository
-      .createQueryBuilder('tripUser')
+    const queryBuilder = this.tripUserRepository.createQueryBuilder('tripUser')
       .leftJoinAndSelect('tripUser.trip', 'trip')
       .leftJoinAndSelect('trip.tripUsers', 'tripUsers')
       .where('tripUser.user.id = :userId', { userId })
-      .andWhere('tripUser.role = :role', { role })
+      .andWhere('tripUser.role = :role', { role });
+
+
+    if (filters.origin) {
+      queryBuilder.andWhere('trip.origin LIKE :origin', { origin: `%${filters.origin}%` });
+    }
+    if (filters.destination) {
+      queryBuilder.andWhere('trip.destination LIKE :destination', { destination: `%${filters.destination}%` });
+    }
+    if (filters.startDate) {
+      queryBuilder.andWhere('DATE(trip.startDate) = :startDate', { startDate: filters.startDate });
+    }
+    if (filters.status) {
+      queryBuilder.andWhere('tripUser.status = :status', { status: filters.status });
+    }
+
+    const trips = await queryBuilder
       .select([
         'tripUser.joinDate',
         'tripUser.status',
@@ -200,6 +217,7 @@ export class TripUserService {
         'trip.maxPassengers',
       ])
       .getMany();
+
     const ret = trips.map((tu) => {
       const tripDto = new ListTripResponseDto();
       tripDto.id = tu.trip.id;

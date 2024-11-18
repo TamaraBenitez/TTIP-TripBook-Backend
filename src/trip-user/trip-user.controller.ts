@@ -3,8 +3,8 @@ import { TripUserService } from './trip-user.service';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
-import { UserRole } from './entities/trip-user.entity';
 import { RejectRequestDto } from './dto/reject-request.dto';
+import { FilterTripsDto } from './dto/filters-trip-user.dto';
 
 
 @ApiTags('TripUser')
@@ -19,8 +19,9 @@ export class TripUserController {
 
   @Get(':userId/trips')
   async getTripsByUser(@Param('userId') userId: string,
-    @Query('role') role: UserRole) {
-    return this.tripUserService.findTripsByUser(userId, role);
+    @Query() query: FilterTripsDto) {
+    const { role, ...filters } = query;
+    return this.tripUserService.findTripsByUser(userId, role, filters);
   }
 
   @Post('/createRegistrationWithOtherCoordinates')
