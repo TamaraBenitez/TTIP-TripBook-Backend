@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { TripUserService } from './trip-user.service';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -24,6 +24,7 @@ export class TripUserController {
     return this.tripUserService.findTripsByUser(userId, role, filters);
   }
 
+
   @Post('/createRegistrationWithOtherCoordinates')
   async registrationTripUserWithOtherCoordinates(@Body() createTripWithOtherCoordinates: CreateTripWithOtherCoordinates) {
     return this.tripUserService.registerPassengerWithOtherCoordinates(createTripWithOtherCoordinates)
@@ -44,6 +45,13 @@ export class TripUserController {
     @Body() rejectRequestDto: RejectRequestDto) {
     const { rejectionReason } = rejectRequestDto;
     return await this.tripUserService.rejectRequest(tripUserId, rejectionReason)
+  }
+
+  @Post('cancelRequest/:tripUserId')
+  async cancelTripUser(
+    @Param('tripUserId') tripUserId: string
+  ) {
+    return this.tripUserService.cancelRequest(tripUserId);
   }
 
 
