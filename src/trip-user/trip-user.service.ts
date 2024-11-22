@@ -215,6 +215,7 @@ export class TripUserService {
         'trip.estimatedCost',
         'tripUsers.id',
         'trip.maxPassengers',
+        'tripUsers.status'
       ])
       .getMany();
 
@@ -228,9 +229,11 @@ export class TripUserService {
       tripDto.estimatedCost = tu.trip.estimatedCost;
       tripDto.maxPassengers = tu.trip.maxPassengers;
       tripDto.status = tu.status;
-      tripDto.registrants = tu.trip.tripUsers.length
-        ? tu.trip.tripUsers.length - 1
-        : 0;
+      // Filtrar usuarios con estado 'confirmed'
+      const confirmedUsers = tu.trip.tripUsers.filter((user) => user.status === 'confirmed');
+
+      // Calcular registrants excluyendo al conductor
+      tripDto.registrants = confirmedUsers.length ? confirmedUsers.length - 1 : 0;
       return tripDto;
     });
 

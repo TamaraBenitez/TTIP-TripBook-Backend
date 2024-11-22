@@ -58,7 +58,11 @@ export class TripService {
     return trips.map((trip) => this.mapToListTripResponseDto(trip));
   }
   private mapToListTripResponseDto(trip: Trip): ListTripResponseDto {
-    const registrantsCount = trip.tripUsers.length ? trip.tripUsers.length - 1 : trip.tripUsers.length; //registrants except the driver
+    // Filtra los tripUsers para contar solo aquellos con estado 'confirmed'
+    const confirmedUsers = trip.tripUsers.filter((tripUser) => tripUser.status === 'confirmed');
+
+    // Resta 1 para excluir al conductor, asumiendo que siempre hay uno
+    const registrantsCount = confirmedUsers.length ? confirmedUsers.length - 1 : 0;
 
     return {
       id: trip.id,
