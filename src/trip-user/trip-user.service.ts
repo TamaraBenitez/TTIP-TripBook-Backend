@@ -55,7 +55,7 @@ export class TripUserService {
     queryRunner?: QueryRunner,
   ) {
     const { userId } = createTripUserDto;
-    let trip = tripDetails;
+    const trip = tripDetails;
 
     const user = await this.userService.findOneById(userId);
     if (!user) {
@@ -205,6 +205,7 @@ export class TripUserService {
 
     const trips = await queryBuilder
       .select([
+        'tripUser.id',
         'tripUser.joinDate',
         'tripUser.status',
         'trip.id',
@@ -229,6 +230,7 @@ export class TripUserService {
       tripDto.estimatedCost = tu.trip.estimatedCost;
       tripDto.maxPassengers = tu.trip.maxPassengers;
       tripDto.status = tu.status;
+      tripDto.tripUserId = tu.id;
       // Filtrar usuarios con estado 'confirmed'
       const confirmedUsers = tu.trip.tripUsers.filter((user) => user.status === 'confirmed');
 
@@ -339,7 +341,7 @@ export class TripUserService {
     await this.sendEmail(
       tripUser.user.email,
       tripUser.user.name,
-      'rechazada',
+      'rejected',
       trip.origin,
       trip.destination,
       rejectionReason
@@ -384,7 +386,7 @@ export class TripUserService {
       await this.sendEmail(
         tripUser.user.email,
         tripUser.user.name,
-        'rechazada',
+        'rejected',
         trip.origin,
         trip.destination
       );
@@ -397,7 +399,7 @@ export class TripUserService {
       await this.sendEmail(
         tripUser.user.email,
         tripUser.user.name,
-        'aprobada',
+        'approved',
         trip.origin,
         trip.destination
       );
@@ -412,6 +414,45 @@ export class TripUserService {
     };
   }
 
+  async cancelRequest(tripUserId: string) {
+
+    const tripUser = await this.tripUserRepository.findOne({
+      where: { id: tripUserId },
+      relations: ['trip', 'user'],
+    });
+
+    if (!tripUser) {
+      throw new NotFoundException('Inscripción no encontrada');
+    }
+
+    if (tripUser.role === UserRole.DRIVER) {
+      throw new BadRequestException('Los conductores no pueden cancelar el viaje');
+    }
+
+    if (tripUser.status !== TripUserStatus.Confirmed) {
+      throw new BadRequestException('Solo se pueden cancelar inscripciones confirmadas');
+    }
+
+
+    tripUser.status = TripUserStatus.Cancelled;
+    await this.tripUserRepository.save(tripUser);
+
+
+    await this.sendEmail(
+      tripUser.user.email,
+      tripUser.user.name,
+      'cancelled',
+      tripUser.trip.origin,
+      tripUser.trip.destination
+    );
+
+    return {
+      message: 'La inscripción ha sido cancelada.',
+      status: tripUser.status,
+    };
+  }
+
+
   private async sendEmail(
     email: string,
     name: string,
@@ -420,29 +461,43 @@ export class TripUserService {
     destination: string,
     rejectionReason?: string
   ) {
-    const subject = status === 'aprobada' ? 'Solicitud Aprobada' : 'Solicitud Rechazada';
+    const statusMessages = {
+      approved: {
+        subject: 'Solicitud Aprobada',
+        text: `Hola ${name},\n\nTu solicitud para unirte al viaje con origen ${origin} hacia destino ${destination} ha sido aprobada. ¡Nos vemos en el viaje!`,
+        html: `<p>Hola ${name},</p><p>Tu solicitud para unirte al viaje con origen <strong>${origin}</strong> hacia destino <strong>${destination}</strong> ha sido aprobada. ¡Nos vemos en el viaje!</p>`,
+      },
+      rejected: {
+        subject: 'Solicitud Rechazada',
+        text: `Hola ${name},\n\nLamentablemente, tu solicitud para unirte al viaje con origen ${origin} hacia destino ${destination} ha sido rechazada.` +
+          (rejectionReason ? ` Motivo: ${rejectionReason}` : ''),
+        html: `<p>Hola ${name},</p><p>Lamentablemente, tu solicitud para unirte al viaje con origen <strong>${origin}</strong> hacia destino <strong>${destination}</strong> ha sido rechazada.</p>` +
+          (rejectionReason ? `<p>Motivo: ${rejectionReason}</p>` : ''),
+      },
+      cancelled: {
+        subject: 'Inscripción Cancelada',
+        text: `Hola ${name},\n\nTu inscripción al viaje con origen ${origin} hacia destino ${destination} ha sido cancelada con éxito. Te esperamos en próximos viajes!`,
+        html: `<p>Hola ${name},</p><p>Tu inscripción al viaje con origen <strong>${origin}</strong> hacia destino <strong>${destination}</strong> ha sido cancelada con éxito. Te esperamos en próximos viajes!</p>`,
+      },
+    };
 
 
-    const text =
-      status === 'aprobada'
-        ? `Hola ${name},\n\nTu solicitud para unirte al viaje con origen ${origin} hacia destino ${destination} ha sido aprobada. ¡Nos vemos en el viaje!`
-        : `Hola ${name},\n\nLamentablemente, tu solicitud para unirte al viaje con origen ${origin} hacia el destino ${destination} ha sido rechazada.` +
-        (rejectionReason ? ` Motivo: ${rejectionReason}` : '');
+    const message = statusMessages[status];
 
-    const html =
-      status === 'aprobada'
-        ? `<p>Hola ${name},</p><p>Tu solicitud para unirte al viaje con origen <strong>${origin}</strong> hacia destino <strong>${destination}</strong> ha sido aprobada. ¡Nos vemos en el viaje!</p>`
-        : `Hola ${name},\n\nLamentablemente, tu solicitud para unirte al viaje con origen ${origin} hacia el destino ${destination} ha sido rechazada.` +
-        (rejectionReason ? ` Motivo: ${rejectionReason}` : '');
+    if (!message) {
+      throw new Error(`Estado desconocido para enviar email: ${status}`);
+    }
 
+    // Opciones para enviar el correo
     const mailOptions = {
       from: '"TripBook" <tripbook14@gmail.com>',
       to: email,
-      subject,
-      text,
-      html,
+      subject: message.subject,
+      text: message.text,
+      html: message.html,
     };
 
+    // Enviar el correo
     await this.transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error('Error al enviar el correo:', error);

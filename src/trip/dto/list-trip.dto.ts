@@ -10,4 +10,5 @@ export class ListTripResponseDto {
   registrants: number;
   maxPassengers: number;
   status?: TripUserStatus;
+  tripUserId?: string;
 }

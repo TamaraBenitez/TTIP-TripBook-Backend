@@ -5,4 +5,5 @@ export default () => ({
     SMTP_SECURE: "",
     SMTP_USER: "",
     SMTP_PASS: ""
+
 });

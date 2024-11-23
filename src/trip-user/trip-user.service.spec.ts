@@ -151,7 +151,7 @@ describe('TripUserService', () => {
       expect(service['sendEmail']).toHaveBeenCalledWith(
         tripUserMock.user.email,
         tripUserMock.user.name,
-        'rechazada',
+        'rejected',
         tripUserMock.trip.origin,
         tripUserMock.trip.destination,
         'Reason for rejection'
@@ -204,7 +204,7 @@ describe('TripUserService', () => {
       expect(service['sendEmail']).toHaveBeenCalledWith(
         tripUserMock.user.email,
         tripUserMock.user.name,
-        'rechazada',
+        'rejected',
         tripUserMock.trip.origin,
         tripUserMock.trip.destination
       );
@@ -235,11 +235,44 @@ describe('TripUserService', () => {
       expect(service['sendEmail']).toHaveBeenCalledWith(
         tripUserMock.user.email,
         tripUserMock.user.name,
-        'aprobada',
+        'approved',
         tripUserMock.trip.origin,
         tripUserMock.trip.destination
       );
     });
   });
 
-});
+  describe('cancelRequest', () => {
+
+    it('should cancel the request when status is Confirmed', async () => {
+      const tripUserMock = {
+        id: 'confirmed-id',
+        status: TripUserStatus.Confirmed,
+        user: { email: 'user@example.com', name: 'User' },
+        trip: { origin: 'Origin', destination: 'Destination' },
+      } as TripUser;
+
+      jest.spyOn(tripUserRepository, 'findOne').mockResolvedValueOnce(tripUserMock);
+      jest.spyOn(tripUserRepository, 'save').mockResolvedValueOnce({
+        ...tripUserMock,
+        status: TripUserStatus.Cancelled,
+      });
+
+      const result = await service.cancelRequest('confirmed-id');
+
+      expect(tripUserMock.status).toBe(TripUserStatus.Cancelled);
+      expect(result).toEqual({
+        message: 'La inscripción ha sido cancelada.',
+        status: TripUserStatus.Cancelled,
+      });
+      expect(service['sendEmail']).toHaveBeenCalledWith(
+        tripUserMock.user.email,
+        tripUserMock.user.name,
+        'cancelled',
+        tripUserMock.trip.origin,
+        tripUserMock.trip.destination
+      );
+    });
+
+  });
+})
