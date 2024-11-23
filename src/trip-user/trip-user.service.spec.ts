@@ -151,7 +151,7 @@ describe('TripUserService', () => {
       expect(service['sendEmail']).toHaveBeenCalledWith(
         tripUserMock.user.email,
         tripUserMock.user.name,
-        'rechazada',
+        'rejected',
         tripUserMock.trip.origin,
         tripUserMock.trip.destination,
         'Reason for rejection'
@@ -204,7 +204,7 @@ describe('TripUserService', () => {
       expect(service['sendEmail']).toHaveBeenCalledWith(
         tripUserMock.user.email,
         tripUserMock.user.name,
-        'rechazada',
+        'rejected',
         tripUserMock.trip.origin,
         tripUserMock.trip.destination
       );
@@ -235,7 +235,7 @@ describe('TripUserService', () => {
       expect(service['sendEmail']).toHaveBeenCalledWith(
         tripUserMock.user.email,
         tripUserMock.user.name,
-        'aprobada',
+        'approved',
         tripUserMock.trip.origin,
         tripUserMock.trip.destination
       );

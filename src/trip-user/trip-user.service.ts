@@ -386,7 +386,7 @@ export class TripUserService {
       await this.sendEmail(
         tripUser.user.email,
         tripUser.user.name,
-        'rechazada',
+        'rejected',
         trip.origin,
         trip.destination
       );
