@@ -73,6 +73,7 @@ export class TripService {
       estimatedCost: trip.estimatedCost,
       registrants: registrantsCount,
       maxPassengers: trip.maxPassengers,
+      imageUrl: trip.imageUrl
     };
   }
 

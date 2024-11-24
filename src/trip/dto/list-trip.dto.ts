@@ -11,4 +11,5 @@ export class ListTripResponseDto {
   maxPassengers: number;
   status?: TripUserStatus;
   tripUserId?: string;
+  imageUrl?: string
 }
