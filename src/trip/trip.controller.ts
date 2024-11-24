@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { TripService } from './trip.service';
 import { CreateTripDto } from './dto/create-trip.dto';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import { TripFiltersDto } from './dto/filters-trip-dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Trip')
 @Controller('trip')
@@ -26,14 +27,25 @@ export class TripController {
   }
 
   @Post()
-  create(@Body() createTripDto: CreateTripDto) {
-    return this.tripService.createTrip(createTripDto)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('image'))
+  async create(@Body() createTripDto: CreateTripDto, @UploadedFile() file: Express.Multer.File) {
+
+    if (file) {
+      createTripDto.image = file;
+    }
+
+    return this.tripService.createTrip(createTripDto);
   }
+
+
+
 
   @Get('/driver/:userId/pendingPassengers')
   async getDriverTripsWithPendingPassengers(@Param('userId') userId: string) {
     const tripsWithPendingPassengers = await this.tripService.getTripsWithPendingPassengers(userId);
     return tripsWithPendingPassengers;
   }
+
 
 }

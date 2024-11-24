@@ -6,6 +6,7 @@ import { HttpModule } from '@nestjs/axios';
 @Module({
   imports: [HttpModule],
   providers: [ImgurService],
-  controllers: [ImgurController]
+  controllers: [ImgurController],
+  exports: [ImgurService]
 })
 export class ImgurModule { }
