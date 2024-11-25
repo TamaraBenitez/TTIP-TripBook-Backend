@@ -11,6 +11,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class TripController {
   constructor(private readonly tripService: TripService) { }
 
+  @Get('imagesUrls')
+  findImagesUrls() {
+    return this.tripService.findImageUrls()
+  }
+
 
 
   @Get()

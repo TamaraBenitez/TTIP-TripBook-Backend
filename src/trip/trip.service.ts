@@ -28,6 +28,7 @@ import { ImgurService } from '../imgur/imgur.service';
 
 @Injectable()
 export class TripService {
+
   constructor(
     @InjectRepository(Trip)
     private readonly tripRepository: Repository<Trip>,
@@ -38,6 +39,10 @@ export class TripService {
     private readonly dataSource: DataSource,
     private readonly imgurService: ImgurService
   ) { }
+
+  async findImageUrls() {
+    return this.tripRepository.find({ select: ["imageUrl"] })
+  }
 
   async findAll(filters: TripFiltersDto) {
 
