@@ -5,6 +5,7 @@ import { ApiConsumes, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import { TripFiltersDto } from './dto/filters-trip-dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { plainToInstance } from 'class-transformer';
 
 @ApiTags('Trip')
 @Controller('trip')
@@ -34,11 +35,17 @@ export class TripController {
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
-  async create(@Body() createTripDto: CreateTripDto, @UploadedFile() file: Express.Multer.File) {
+  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File): Promise<any> {
+    
+    if (body.coordinates) {
+      body.coordinates = JSON.parse(body.coordinates);
+    }
 
     if (file) {
-      createTripDto.image = file;
+      body.image = file;
     }
+
+    const createTripDto = plainToInstance(CreateTripDto, body);
 
     return this.tripService.createTrip(createTripDto);
   }
