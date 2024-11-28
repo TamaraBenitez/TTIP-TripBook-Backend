@@ -11,6 +11,7 @@ import { User } from '../user/entities/user.entity';
 import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.entity';
 import { ConfigModule } from '@nestjs/config';
 import { CoordinateDto } from './dto/create-trip.dto';
+import { ImgurService } from '../imgur/imgur.service';
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 
 //TEST DATA & MOCKS
@@ -42,7 +43,8 @@ const exampleTripDto = {
   estimatedCost: 999,
   maxPassengers: 3,
   userId: "testId",
-  maxTolerableDistance: 5000
+  maxTolerableDistance: 5000,
+  imageUrl:"/src/assets/testImg.png"
 };
 const exampleCreateTrip = {
   origin: 'testorigin',
@@ -51,7 +53,8 @@ const exampleCreateTrip = {
   description: 'testdecription',
   estimatedCost: 999,
   maxPassengers: 3,
-  maxTolerableDistance: exampleTripDto.maxTolerableDistance
+  maxTolerableDistance: exampleTripDto.maxTolerableDistance,
+  imageUrl:"/src/assets/testImg.png"
 }
 const exampleTrip = {
   id: 'testid',
@@ -62,6 +65,7 @@ const exampleTrip = {
   estimatedCost: 999,
   maxPassengers: 3,
   tripUsers: [],
+  imageUrl:"/src/assets/testImg.png"
 };
 const exampleUser = {
   id: 'exampleUserId',
@@ -77,6 +81,9 @@ const exampleTripUser = {
 
 const mockManager = {
   save: jest.fn().mockResolvedValue(exampleTrip),
+}
+const mockImgurService = {
+  uploadImage: jest.fn()
 }
 const mockQueryRunnerResult = {
   connect: jest.fn(),
@@ -160,6 +167,10 @@ describe('TripService', () => {
           provide: getRepositoryToken(TripCoordinate),
           useValue: mockTropCoordinateRepository,
         },
+        {
+          provide: ImgurService,
+          useValue: mockImgurService
+        }
       ],
     }).compile();
     dataSourceMock = module.get(DataSource);
@@ -185,6 +196,7 @@ describe('TripService', () => {
         estimatedCost: exampleTrip.estimatedCost,
         registrants: 0,
         maxPassengers: exampleTrip.maxPassengers,
+        imageUrl:exampleTrip.imageUrl
       },
     ]);
   });

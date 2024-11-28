@@ -35,7 +35,7 @@ export class TripController {
   @Post()
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
-  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File): Promise<any> {
+  async create(@Body() body: any, @UploadedFile() file?: Express.Multer.File): Promise<any> {
     
     if (body.coordinates) {
       body.coordinates = JSON.parse(body.coordinates);

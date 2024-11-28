@@ -23,7 +23,7 @@ export class ImgurService {
                     ...form.getHeaders(),
                 },
             });
-
+            
             return response.data.data.link;
         } catch (error) {
             console.error('Error al subir la imagen a Imgur:', error);
