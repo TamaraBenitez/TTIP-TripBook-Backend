@@ -16,15 +16,18 @@ export class Trip {
     startDate: Date;
 
     @Column({ type: 'text', nullable: true })
+    imageUrl: string;
+
+    @Column({ type: 'text', nullable: true })
     description: string;
 
     @Column({ type: 'int' })
     estimatedCost: number;
 
-    @Column({ type: 'int'})
+    @Column({ type: 'int' })
     maxPassengers: number;
 
-    @Column({ type: 'int', default: 2500})
+    @Column({ type: 'int', default: 2500 })
     maxTolerableDistance: number;
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.trip)

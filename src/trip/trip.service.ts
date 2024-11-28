@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Trip } from './entities/trip.entity';
 import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import {
@@ -22,10 +22,13 @@ import { NotFoundException } from '@zxing/library';
 import { ListTripResponseDto } from './dto/list-trip.dto';
 import { format } from 'date-fns';
 import { TripFiltersDto } from './dto/filters-trip-dto';
+import { ImgurService } from '../imgur/imgur.service';
+
 
 
 @Injectable()
 export class TripService {
+
   constructor(
     @InjectRepository(Trip)
     private readonly tripRepository: Repository<Trip>,
@@ -34,7 +37,12 @@ export class TripService {
     private readonly userService: UserService,
     private readonly tripCoordinateService: TripCoordinateService,
     private readonly dataSource: DataSource,
+    private readonly imgurService: ImgurService
   ) { }
+
+  async findImageUrls() {
+    return this.tripRepository.find({ select: ["imageUrl"] })
+  }
 
   async findAll(filters: TripFiltersDto) {
 
@@ -73,8 +81,11 @@ export class TripService {
       estimatedCost: trip.estimatedCost,
       registrants: registrantsCount,
       maxPassengers: trip.maxPassengers,
+      imageUrl: trip.imageUrl
     };
   }
+
+
 
   async findOneById(id: string) {
     //Find one trip and return only confirmed tripCoordinates
@@ -147,7 +158,9 @@ export class TripService {
         destination,
         userId,
         maxPassengers,
-        maxTolerableDistance
+        maxTolerableDistance,
+        image,
+        imageUrl
       } = createTripDto;
 
       const startDateOnly = format(new Date(startDate), 'yyyy-MM-dd');
@@ -166,6 +179,16 @@ export class TripService {
         throw new BadRequestException('Ya tienes un viaje creado en la misma fecha');
       }
 
+      let finalImageUrl = null;
+
+      if (image) {
+        // Si el frontend envió un archivo de imagen, llamar al servicio de Imgur para subirla
+        finalImageUrl = await this.imgurService.uploadImage(image);
+      } else if (imageUrl) {
+        // Si el frontend envió una URL, asignarla directamente
+        finalImageUrl = imageUrl;
+      }
+
       // Create the trip entity
       const trip = new Trip();
       trip.origin = origin;
@@ -175,6 +198,7 @@ export class TripService {
       trip.estimatedCost = estimatedCost;
       trip.maxPassengers = maxPassengers;
       trip.maxTolerableDistance = maxTolerableDistance;
+      trip.imageUrl = finalImageUrl;
 
       // Save the trip
       const savedTrip = await queryRunner.manager.save(trip);
@@ -218,6 +242,8 @@ export class TripService {
       tripDetails.estimatedCost = savedTrip.estimatedCost;
       tripDetails.maxPassengers = savedTrip.maxPassengers;
       tripDetails.maxTolerableDistance = savedTrip.maxTolerableDistance;
+      tripDetails.imageUrl = savedTrip.imageUrl
+
 
       const user = await this.userService.findOneById(userId);
       // Include the driver in the participants
@@ -276,5 +302,8 @@ export class TripService {
 
     return tripsWithPendingPassengers;
   }
+
+
+
 
 }

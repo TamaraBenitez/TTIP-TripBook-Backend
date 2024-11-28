@@ -10,9 +10,10 @@ import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.enti
 import { TripUser } from '../trip-user/entities/trip-user.entity';
 import { TripUserService } from '../trip-user/trip-user.service';
 import { TripUserModule } from '../trip-user/trip-user.module';
+import { ImgurModule } from '../imgur/imgur.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Trip, User, TripUser, TripCoordinate]), forwardRef(() => TripUserModule), forwardRef(() => TripCoordinate)],
+  imports: [TypeOrmModule.forFeature([Trip, User, TripUser, TripCoordinate]), forwardRef(() => TripUserModule), forwardRef(() => TripCoordinate), ImgurModule],
   controllers: [TripController],
   providers: [TripService, TripUserService, UserService, TripCoordinateService],
   exports: [TripService]

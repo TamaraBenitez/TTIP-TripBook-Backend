@@ -2,15 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TripController } from './trip.controller';
 import { TripService } from './trip.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CreateTripDto } from './dto/create-trip.dto';
+//import { CreateTripDto } from './dto/create-trip.dto';
 
 
 const tripId1 = uuidv4();
 
-const testTripDto: CreateTripDto = {
+const testTripDto: any = {
   origin: 'City A',
   destination: 'City B',
-  coordinates: [
+  coordinates: `[
     {
       "latitude": -29.431193,
       "longitude": -66.86824
@@ -27,13 +27,14 @@ const testTripDto: CreateTripDto = {
       "latitude": -37.326843,
       "longitude": -59.143076
     }
-  ],
+  ]`,
   startDate: new Date('2024-11-01T09:00:00Z'),
   description: 'A trip from City A to City B',
   estimatedCost: 100.50,
   maxPassengers: 4,
   userId: 'a1234b5678c9d0e12345f6g7h8i9j0kl',
-  maxTolerableDistance: 5000
+  maxTolerableDistance: 5000,
+  imageUrl:"/src/assets/testImg.png"
 };
 
 

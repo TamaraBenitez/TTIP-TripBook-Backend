@@ -214,6 +214,7 @@ export class TripUserService {
         'trip.startDate',
         'trip.description',
         'trip.estimatedCost',
+        'trip.imageUrl',
         'tripUsers.id',
         'trip.maxPassengers',
         'tripUsers.status'
@@ -231,6 +232,7 @@ export class TripUserService {
       tripDto.maxPassengers = tu.trip.maxPassengers;
       tripDto.status = tu.status;
       tripDto.tripUserId = tu.id;
+      tripDto.imageUrl = tu.trip.imageUrl;
       // Filtrar usuarios con estado 'confirmed'
       const confirmedUsers = tu.trip.tripUsers.filter((user) => user.status === 'confirmed');
 

@@ -4,6 +4,7 @@ export default () => ({
     SMTP_PORT: "",
     SMTP_SECURE: "",
     SMTP_USER: "",
-    SMTP_PASS: ""
+    SMTP_PASS: "",
+    IMGUR_CLIENT_ID: ""
 
 });

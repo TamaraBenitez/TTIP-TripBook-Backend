@@ -10,6 +10,7 @@ import configuration from './config/configuration';
 import { TripCoordinateModule } from './trip-coordinate/trip-coordinate.module';
 import { CompareImageService } from './compare-image/compare-image.service';
 import { CompareImageModule } from './compare-image/compare-image.module';
+import { ImgurModule } from './imgur/imgur.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { CompareImageModule } from './compare-image/compare-image.module';
     TripCoordinateModule,
     AuthModule,
     Pdf417DecoderModule,
-    CompareImageModule],
+    CompareImageModule,
+    ImgurModule],
   controllers: [],
   providers: [CompareImageService],
 })
