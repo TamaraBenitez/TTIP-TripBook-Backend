@@ -87,7 +87,7 @@ export class TripUserService {
       return tripUser;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(error);
+      throw error
     }
   }
 
@@ -166,13 +166,7 @@ export class TripUserService {
       return tripUser;
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
-
-        throw error;
-      }
-
-
-      throw new InternalServerErrorException(error.message);
+      throw error;
     } finally {
       await queryRunner.release();
     }
