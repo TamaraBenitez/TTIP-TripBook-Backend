@@ -15,14 +15,19 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request)
     if (!token) {
       throw new UnauthorizedException()
+
     }
     try {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: jwtConstants.secret,
       })
       request.user = payload;
-    } catch (error) {
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+
       throw new UnauthorizedException()
+
     }
     return true;
   }

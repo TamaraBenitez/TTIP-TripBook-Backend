@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { TripUserService } from './trip-user.service';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
 import { RejectRequestDto } from './dto/reject-request.dto';
 import { FilterTripsDto } from './dto/filters-trip-user.dto';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 
 @ApiTags('TripUser')
 @Controller('tripUser')
+@UseGuards(AuthGuard)
+@ApiBearerAuth()
 export class TripUserController {
   constructor(private readonly tripUserService: TripUserService) { }
 

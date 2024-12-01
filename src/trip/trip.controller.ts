@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Body, Param, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { TripService } from './trip.service';
 import { CreateTripDto } from './dto/create-trip.dto';
-import { ApiConsumes, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import { TripFiltersDto } from './dto/filters-trip-dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 @ApiTags('Trip')
+@ApiBearerAuth()
 @Controller('trip')
+@UseGuards(AuthGuard)
 export class TripController {
   constructor(private readonly tripService: TripService) { }
 
@@ -36,7 +39,7 @@ export class TripController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
   async create(@Body() body: any, @UploadedFile() file?: Express.Multer.File): Promise<any> {
-    
+
     if (body.coordinates) {
       body.coordinates = JSON.parse(body.coordinates);
     }
