@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TripController } from './trip.controller';
 import { TripService } from './trip.service';
 import { v4 as uuidv4 } from 'uuid';
+import { JwtService } from '@nestjs/jwt';
 //import { CreateTripDto } from './dto/create-trip.dto';
 
 
@@ -34,7 +35,7 @@ const testTripDto: any = {
   maxPassengers: 4,
   userId: 'a1234b5678c9d0e12345f6g7h8i9j0kl',
   maxTolerableDistance: 5000,
-  imageUrl:"/src/assets/testImg.png"
+  imageUrl: "/src/assets/testImg.png"
 };
 
 
@@ -49,11 +50,21 @@ describe('TripController', () => {
       createTrip: jest.fn(),
     },
   }
+
+  const mockJwtService = {
+    sign: jest.fn().mockReturnValue('mockJwtToken'),
+    verify: jest.fn().mockReturnValue({ userId: 'a1234b5678c9d0e12345f6g7h8i9j0kl' }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TripController],
       providers: [
-        tripService
+        tripService,
+        {
+          provide: JwtService,
+          useValue: mockJwtService,
+        },
       ],
       exports: [TripService],
     }).compile();

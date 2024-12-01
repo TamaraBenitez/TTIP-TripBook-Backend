@@ -6,7 +6,7 @@ import { TripDetailsResponseDto } from './dto/details-trip.dto';
 import { TripFiltersDto } from './dto/filters-trip-dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 @ApiTags('Trip')
 @ApiBearerAuth()
