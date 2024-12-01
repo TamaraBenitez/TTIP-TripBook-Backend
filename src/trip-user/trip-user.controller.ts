@@ -5,7 +5,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateTripWithOtherCoordinates } from './dto/create-trip-user-with-other-coordinates.dto';
 import { RejectRequestDto } from './dto/reject-request.dto';
 import { FilterTripsDto } from './dto/filters-trip-user.dto';
-import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 
 @ApiTags('TripUser')

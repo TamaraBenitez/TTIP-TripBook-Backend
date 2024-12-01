@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { VerifyUserDto } from './dto/verify-user.dto';
-import { AuthGuard } from 'src/auth/guard/auth.guard';
+import { AuthGuard } from '../auth/guard/auth.guard';
 
 @ApiTags('Users')
 @Controller('user')
