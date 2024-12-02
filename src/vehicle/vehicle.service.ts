@@ -3,25 +3,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehicle } from './entities/vehicle.entity';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
-import { User } from '../user/entities/user.entity';
+import { UserService } from '../user/user.service';
+import { VehicleResponseDto } from './dto/vehicle-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class VehicleService {
     constructor(
         @InjectRepository(Vehicle)
         private readonly vehicleRepository: Repository<Vehicle>,
-        @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
+        private readonly userService: UserService,
     ) { }
 
 
-    async createVehicle(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
+    async createVehicle(createVehicleDto: CreateVehicleDto): Promise<VehicleResponseDto> {
         const { ownerId, ...vehicleData } = createVehicleDto;
 
-
-        const owner = await this.userRepository.findOne({ where: { id: ownerId } });
+        // Buscar el propietario
+        const owner = await this.userService.findOneById(ownerId);
         if (!owner) {
-            throw new NotFoundException(`El usuario no existe.`);
+            throw new NotFoundException('El usuario no existe.');
         }
 
 
@@ -29,21 +30,29 @@ export class VehicleService {
             ...vehicleData,
             owner,
         });
-        return this.vehicleRepository.save(newVehicle);
+
+        const savedVehicle = await this.vehicleRepository.save(newVehicle);
+
+
+        return plainToInstance(VehicleResponseDto, savedVehicle, {
+            excludeExtraneousValues: true,
+        });
     }
 
 
-    async getVehiclesByOwner(ownerId: string): Promise<Vehicle[]> {
-
-        const owner = await this.userRepository.findOne({ where: { id: ownerId } });
+    async getVehiclesByOwner(ownerId: string): Promise<VehicleResponseDto[]> {
+        const owner = await this.userService.findOneById(ownerId);
         if (!owner) {
-            throw new NotFoundException(`El usuario no existe.`);
+            throw new NotFoundException('El usuario no existe');
         }
 
-
-        return this.vehicleRepository.find({
+        const vehicles = await this.vehicleRepository.find({
             where: { owner: { id: ownerId } },
             relations: ['owner'],
+        });
+
+        return plainToInstance(VehicleResponseDto, vehicles, {
+            excludeExtraneousValues: true,
         });
     }
 }
