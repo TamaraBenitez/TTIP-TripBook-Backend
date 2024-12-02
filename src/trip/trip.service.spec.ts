@@ -35,6 +35,20 @@ const mockCoordinates: CoordinateDto[] = [
     "longitude": -59.143076
   }
 ];
+
+const exampleVehicle = {
+  id: 'exampleVehicleId',
+  model: 'Corolla',
+  color: 'Red',
+  plateNumber: 'ABC1234',
+  year: 2020,
+  owner: {
+    id: 'exampleUserId',
+    name: 'exampleName',
+    surname: 'exampleSurname',
+  },
+};
+
 const exampleTripDto = {
   id: 'testid',
   origin: 'testorigin',
@@ -57,7 +71,7 @@ const exampleCreateTrip = {
   estimatedCost: 999,
   maxPassengers: 3,
   maxTolerableDistance: exampleTripDto.maxTolerableDistance,
-  vehicleId: 'exampleVehicleId',
+  vehicle: exampleVehicle,
   imageUrl: "/src/assets/testImg.png"
 }
 const exampleTrip = {
@@ -69,8 +83,9 @@ const exampleTrip = {
   estimatedCost: 999,
   maxPassengers: 3,
   tripUsers: [],
-  imageUrl: "/src/assets/testImg.png"
-};
+  imageUrl: "/src/assets/testImg.png",
+  vehicle: exampleVehicle
+}
 const exampleUser = {
   id: 'exampleUserId',
   name: 'exampleName',
@@ -83,18 +98,7 @@ const exampleTripUser = {
   role: UserRole.DRIVER,
 }
 
-const exampleVehicle = {
-  id: 'exampleVehicleId',
-  model: 'Corolla',
-  color: 'Red',
-  plateNumber: 'ABC1234',
-  year: 2020,
-  owner: {
-    id: 'exampleUserId',
-    name: 'exampleName',
-    surname: 'exampleSurname',
-  },
-};
+
 
 
 const mockVehicleRepository = {
@@ -265,18 +269,7 @@ describe('TripService', () => {
       joinDate: exampleTripDto.startDate,
       status: "confirmed",
       role: "driver",
-      vehicle: {
-        id: exampleVehicle.id,
-        model: exampleVehicle.model,
-        color: exampleVehicle.color,
-        plateNumber: exampleVehicle.plateNumber,
-        year: exampleVehicle.year,
-        owner: {
-          id: exampleVehicle.owner.id,
-          name: exampleVehicle.owner.name,
-          surname: exampleVehicle.owner.surname,
-        },
-      },
+
     });
     expect(mockQueryRunnerResult.commitTransaction).toHaveBeenCalled();
     expect(mockQueryRunnerResult.release).toHaveBeenCalled();
