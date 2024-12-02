@@ -12,6 +12,8 @@ import { TripCoordinate } from '../trip-coordinate/entities/trip-coordinate.enti
 import { ConfigModule } from '@nestjs/config';
 import { CoordinateDto } from './dto/create-trip.dto';
 import { ImgurService } from '../imgur/imgur.service';
+import { Vehicle } from '../vehicle/entities/vehicle.entity';
+import { VehicleService } from '../vehicle/vehicle.service';
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
 
 //TEST DATA & MOCKS
@@ -44,7 +46,8 @@ const exampleTripDto = {
   maxPassengers: 3,
   userId: "testId",
   maxTolerableDistance: 5000,
-  imageUrl:"/src/assets/testImg.png"
+  vehicleId: 'exampleVehicleId',
+  imageUrl: "/src/assets/testImg.png"
 };
 const exampleCreateTrip = {
   origin: 'testorigin',
@@ -54,7 +57,8 @@ const exampleCreateTrip = {
   estimatedCost: 999,
   maxPassengers: 3,
   maxTolerableDistance: exampleTripDto.maxTolerableDistance,
-  imageUrl:"/src/assets/testImg.png"
+  vehicleId: 'exampleVehicleId',
+  imageUrl: "/src/assets/testImg.png"
 }
 const exampleTrip = {
   id: 'testid',
@@ -65,7 +69,7 @@ const exampleTrip = {
   estimatedCost: 999,
   maxPassengers: 3,
   tripUsers: [],
-  imageUrl:"/src/assets/testImg.png"
+  imageUrl: "/src/assets/testImg.png"
 };
 const exampleUser = {
   id: 'exampleUserId',
@@ -78,6 +82,25 @@ const exampleTripUser = {
   status: TripUserStatus.Confirmed,
   role: UserRole.DRIVER,
 }
+
+const exampleVehicle = {
+  id: 'exampleVehicleId',
+  model: 'Corolla',
+  color: 'Red',
+  plateNumber: 'ABC1234',
+  year: 2020,
+  owner: {
+    id: 'exampleUserId',
+    name: 'exampleName',
+    surname: 'exampleSurname',
+  },
+};
+
+
+const mockVehicleRepository = {
+  findOneBy: jest.fn().mockResolvedValue(exampleVehicle),
+  findOne: jest.fn().mockResolvedValue(exampleVehicle),
+};
 
 const mockManager = {
   save: jest.fn().mockResolvedValue(exampleTrip),
@@ -170,7 +193,12 @@ describe('TripService', () => {
         {
           provide: ImgurService,
           useValue: mockImgurService
-        }
+        },
+        VehicleService,
+        {
+          provide: getRepositoryToken(Vehicle),
+          useValue: mockVehicleRepository,
+        },
       ],
     }).compile();
     dataSourceMock = module.get(DataSource);
@@ -196,7 +224,7 @@ describe('TripService', () => {
         estimatedCost: exampleTrip.estimatedCost,
         registrants: 0,
         maxPassengers: exampleTrip.maxPassengers,
-        imageUrl:exampleTrip.imageUrl
+        imageUrl: exampleTrip.imageUrl
       },
     ]);
   });
@@ -221,6 +249,7 @@ describe('TripService', () => {
     jest.spyOn(mockManager, 'save');
     jest.spyOn(mockTripUserRepository, 'findOne');
     jest.spyOn(mockTripUserRepository, 'create');
+    jest.spyOn(mockVehicleRepository, 'findOneBy')
 
 
     await tripService.createTrip(exampleTripDto);
@@ -235,7 +264,19 @@ describe('TripService', () => {
       trip: exampleCreateTrip,
       joinDate: exampleTripDto.startDate,
       status: "confirmed",
-      role: "driver"
+      role: "driver",
+      vehicle: {
+        id: exampleVehicle.id,
+        model: exampleVehicle.model,
+        color: exampleVehicle.color,
+        plateNumber: exampleVehicle.plateNumber,
+        year: exampleVehicle.year,
+        owner: {
+          id: exampleVehicle.owner.id,
+          name: exampleVehicle.owner.name,
+          surname: exampleVehicle.owner.surname,
+        },
+      },
     });
     expect(mockQueryRunnerResult.commitTransaction).toHaveBeenCalled();
     expect(mockQueryRunnerResult.release).toHaveBeenCalled();
@@ -254,4 +295,5 @@ describe('TripService', () => {
 
     expect(mockQueryRunnerResult.rollbackTransaction).toHaveBeenCalled();
   })
+
 });

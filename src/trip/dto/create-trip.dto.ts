@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, IsNumber, IsDate, IsNotEmpty, IsObject, IsDateString, IsArray, ValidateNested, IsOptional, IsUrl, IsInstance } from 'class-validator';
-import { Express } from 'express';
+import { IsString, IsNumber, IsNotEmpty, IsDateString, IsArray, ValidateNested, IsOptional } from 'class-validator';
+
 
 
 export class CoordinateDto {
@@ -55,4 +55,8 @@ export class CreateTripDto {
   @IsOptional()
   @ApiProperty({ type: 'string', format: 'binary' })
   image?: any
+
+  @IsString()
+  @IsNotEmpty()
+  vehicleId: string;
 }

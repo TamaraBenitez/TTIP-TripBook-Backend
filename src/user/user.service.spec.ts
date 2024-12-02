@@ -72,7 +72,8 @@ describe('UserService', () => {
       emailVerificationTokenExpires: new Date(),
       tripUsers: [],
       imageDescriptor: 'some-image-data',
-      phoneNumber: '5491187654321'
+      phoneNumber: '5491187654321',
+      vehicles: [],
     };
     userRepository.findOneBy.mockResolvedValue(userFound)
 
@@ -104,7 +105,8 @@ describe('UserService', () => {
       emailVerificationTokenExpires: new Date(),
       tripUsers: [],
       imageDescriptor: 'some-image-data',
-      phoneNumber: '5491187654321'
+      phoneNumber: '5491187654321',
+      vehicles: [],
     };
 
     userRepository.findOneBy.mockResolvedValue(user)
@@ -138,7 +140,8 @@ describe('UserService', () => {
       emailVerificationTokenExpires: new Date(),
       tripUsers: [],
       imageDescriptor: 'some-image-data',
-      phoneNumber: '5491187654321'
+      phoneNumber: '5491187654321',
+      vehicles: [],
     };
 
     userRepository.findOne.mockResolvedValue(user)

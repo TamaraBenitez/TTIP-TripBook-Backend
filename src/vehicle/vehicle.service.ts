@@ -55,4 +55,13 @@ export class VehicleService {
             excludeExtraneousValues: true,
         });
     }
+
+
+    async findOneById(vehicleId: string): Promise<Vehicle> {
+        const vehicle = await this.vehicleRepository.findOne({ where: { id: vehicleId } });
+        if (!vehicle) {
+            throw new NotFoundException(`El vehículo no existe.`);
+        }
+        return vehicle;
+    }
 }
