@@ -37,7 +37,8 @@ describe('AuthService', () => {
     emailVerificationTokenExpires: null,
     tripUsers: [],
     imageDescriptor: 'base64string',
-    phoneNumber: '5491187654321'
+    phoneNumber: '5491187654321',
+    vehicles: []
   };
 
   const loginDto = { email: 'user@example.com', password: 'password' };

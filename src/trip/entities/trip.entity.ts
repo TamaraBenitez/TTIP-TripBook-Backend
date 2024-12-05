@@ -1,5 +1,6 @@
+import { Vehicle } from '../../vehicle/entities/vehicle.entity'
 import { TripUser } from '../../trip-user/entities/trip-user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('trip')
 export class Trip {
@@ -32,4 +33,8 @@ export class Trip {
 
     @OneToMany(() => TripUser, (tripUser) => tripUser.trip)
     tripUsers: TripUser[]; // Relación uno a muchos con TripUser
+
+    @ManyToOne(() => Vehicle, (vehicle) => vehicle.trips)
+    @JoinColumn({ name: 'vehicle_id' })
+    vehicle: Vehicle;
 }

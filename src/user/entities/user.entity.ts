@@ -1,3 +1,4 @@
+import { Vehicle } from "../../vehicle/entities/vehicle.entity";
 import { TripUser } from "../../trip-user/entities/trip-user.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -74,6 +75,7 @@ export class User {
     @Column({ type: "varchar", length: 15 })
     phoneNumber: string;
 
-
+    @OneToMany(() => Vehicle, (vehicle) => vehicle.owner)
+    vehicles: Vehicle[]; // Vehículos registrados por este usuario
 
 }

@@ -23,6 +23,7 @@ import { ListTripResponseDto } from './dto/list-trip.dto';
 import { format } from 'date-fns';
 import { TripFiltersDto } from './dto/filters-trip-dto';
 import { ImgurService } from '../imgur/imgur.service';
+import { VehicleService } from '../vehicle/vehicle.service';
 
 
 
@@ -37,7 +38,8 @@ export class TripService {
     private readonly userService: UserService,
     private readonly tripCoordinateService: TripCoordinateService,
     private readonly dataSource: DataSource,
-    private readonly imgurService: ImgurService
+    private readonly imgurService: ImgurService,
+    private readonly vehicleService: VehicleService,
   ) { }
 
   async findImageUrls() {
@@ -160,7 +162,8 @@ export class TripService {
         maxPassengers,
         maxTolerableDistance,
         image,
-        imageUrl
+        imageUrl,
+        vehicleId
       } = createTripDto;
 
       const startDateOnly = format(new Date(startDate), 'yyyy-MM-dd');
@@ -189,6 +192,8 @@ export class TripService {
         finalImageUrl = imageUrl;
       }
 
+      const vehicle = await this.vehicleService.findOneById(vehicleId);
+
       // Create the trip entity
       const trip = new Trip();
       trip.origin = origin;
@@ -199,6 +204,7 @@ export class TripService {
       trip.maxPassengers = maxPassengers;
       trip.maxTolerableDistance = maxTolerableDistance;
       trip.imageUrl = finalImageUrl;
+      trip.vehicle = vehicle;
 
       // Save the trip
       const savedTrip = await queryRunner.manager.save(trip);
