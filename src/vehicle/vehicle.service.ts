@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehicle } from './entities/vehicle.entity';
@@ -6,6 +6,7 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UserService } from '../user/user.service';
 import { VehicleResponseDto } from './dto/vehicle-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { TripUserService } from '../trip-user/trip-user.service';
 
 @Injectable()
 export class VehicleService {
@@ -13,6 +14,7 @@ export class VehicleService {
         @InjectRepository(Vehicle)
         private readonly vehicleRepository: Repository<Vehicle>,
         private readonly userService: UserService,
+        private readonly tripUserService: TripUserService
     ) { }
 
 
@@ -47,7 +49,7 @@ export class VehicleService {
         }
 
         const vehicles = await this.vehicleRepository.find({
-            where: { owner: { id: ownerId } },
+            where: { owner: { id: ownerId }, isDeleted: false },
             relations: ['owner'],
         });
 
@@ -63,5 +65,27 @@ export class VehicleService {
             throw new NotFoundException(`El vehículo no existe.`);
         }
         return vehicle;
+    }
+
+
+    async softDeleteVehicle(vehicleId: string): Promise<VehicleResponseDto> {
+        const vehicle = await this.vehicleRepository.findOne({ where: { id: vehicleId } });
+        if (!vehicle) {
+            throw new NotFoundException('El vehículo no existe');
+        }
+
+
+        const hasFutureTrips = await this.tripUserService.hasVehicleFutureTrips(vehicleId);
+        if (hasFutureTrips) {
+            throw new BadRequestException('No se puede eliminar un vehículo asociado a un viaje futuro');
+        }
+
+
+        vehicle.isDeleted = true;
+        const updatedVehicle = await this.vehicleRepository.save(vehicle);
+
+        return plainToInstance(VehicleResponseDto, updatedVehicle, {
+            excludeExtraneousValues: true,
+        });
     }
 }

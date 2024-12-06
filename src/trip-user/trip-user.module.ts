@@ -9,8 +9,9 @@ import { Trip } from '../trip/entities/trip.entity';
 import { TripCoordinateModule } from '../trip-coordinate/trip-coordinate.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TripUser, Trip]), UserModule, forwardRef(() => TripModule),TripCoordinateModule],
+  imports: [TypeOrmModule.forFeature([TripUser, Trip]), UserModule, forwardRef(() => TripModule), TripCoordinateModule],
   controllers: [TripUserController],
   providers: [TripUserService],
+  exports: [TripUserService]
 })
 export class TripUserModule { }

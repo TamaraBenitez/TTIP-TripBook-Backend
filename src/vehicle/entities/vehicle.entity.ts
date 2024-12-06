@@ -25,4 +25,7 @@ export class Vehicle {
 
     @OneToMany(() => Trip, (trip) => trip.vehicle)
     trips: Trip[]; // Viajes asociados al vehículo
+
+    @Column({ default: false })
+    isDeleted: boolean
 }

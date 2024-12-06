@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Patch } from '@nestjs/common';
 import { VehicleService } from './vehicle.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -21,5 +21,11 @@ export class VehicleController {
     @Get('owner/:ownerId')
     async getVehiclesByOwner(@Param('ownerId') ownerId: string): Promise<VehicleResponseDto[]> {
         return this.vehicleService.getVehiclesByOwner(ownerId);
+    }
+
+
+    @Patch('delete/:vehicleId')
+    async softDeleteVehicle(@Param('vehicleId') vehicleId: string): Promise<VehicleResponseDto> {
+        return this.vehicleService.softDeleteVehicle(vehicleId);
     }
 }
