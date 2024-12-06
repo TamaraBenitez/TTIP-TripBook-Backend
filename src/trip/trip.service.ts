@@ -111,6 +111,8 @@ export class TripService {
       email: tripUser.user.email,
       locality: tripUser.user.locality,
       province: tripUser.user.province,
+      phoneNumber: tripUser.user.phoneNumber,
+      role: tripUser.role,
     }));
 
     // Obtenemos las coordenadas de los trip_users confirmados
