@@ -44,12 +44,6 @@ export class User {
     @Column({ nullable: true })
     locality: string
 
-    @Column({ type: 'float', nullable: true })
-    latitud: number;
-
-    @Column({ type: 'float', nullable: true })
-    longitud: number;
-
     @Column({ default: false })
     isEmailVerified: boolean;
 

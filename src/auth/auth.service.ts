@@ -43,7 +43,7 @@ export class AuthService {
   }
   async register(registerDto: RegisterDto, file: Express.Multer.File) {
 
-    const { name, surname, email, password, birthDate, province, locality, latitud, longitud, phoneNumber } = registerDto
+    const { name, surname, email, password, birthDate, province, locality, phoneNumber } = registerDto
     const user = await this.usersService.findOneByEmail(email)
 
     if (user) {
@@ -65,8 +65,6 @@ export class AuthService {
       birthDate,
       province,
       locality,
-      latitud,
-      longitud,
       imageDescriptor: userDescriptorBase64,
       phoneNumber
     }

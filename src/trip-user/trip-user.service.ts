@@ -3,7 +3,6 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
@@ -13,7 +12,7 @@ import {
   UserRole,
 } from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, QueryRunner, Repository } from 'typeorm';
+import { DataSource, In, QueryRunner, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { TripService } from '../trip/trip.service';
 import { ListTripResponseDto } from '../trip/dto/list-trip.dto';
