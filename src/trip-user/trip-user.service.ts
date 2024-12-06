@@ -3,7 +3,6 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTripUserDto } from './dto/create-trip-user.dto';
@@ -13,7 +12,7 @@ import {
   UserRole,
 } from './entities/trip-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, QueryRunner, Repository } from 'typeorm';
+import { DataSource, In, MoreThanOrEqual, QueryRunner, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { TripService } from '../trip/trip.service';
 import { ListTripResponseDto } from '../trip/dto/list-trip.dto';
@@ -501,5 +500,28 @@ export class TripUserService {
         console.log('Correo enviado:', info.response);
       }
     });
+  }
+
+
+  async hasVehicleFutureTrips(vehicleId: string): Promise<boolean> {
+    const currentDate = new Date();
+    const timeZoneOffset = -3; // Hora estándar para 'America/Argentina/Buenos_Aires' (UTC-3)
+    const localDate = new Date(currentDate.getTime() + timeZoneOffset * 60 * 60 * 1000);
+
+    console.log('Fecha Local:', localDate); // Fecha y hora ajustada
+
+    const trips = await this.tripUserRepository.find({
+      where: {
+        trip: {
+          vehicle: { id: vehicleId },
+          startDate: MoreThanOrEqual(localDate),
+        },
+      },
+      relations: ['trip', 'trip.vehicle'],
+    });
+
+    console.log(trips.length > 0)
+
+    return trips.length > 0;
   }
 }

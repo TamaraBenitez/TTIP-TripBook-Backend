@@ -8,7 +8,7 @@ import { TripService } from '../trip/trip.service';
 import { TripCoordinateService } from '../trip-coordinate/trip-coordinate.service';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Trip } from 'src/trip/entities/trip.entity';
+
 
 describe('TripUserService', () => {
   let service: TripUserService;

@@ -29,8 +29,6 @@ describe('AuthService', () => {
     birthDate: new Date('1990-01-01'),
     province: 'Test Province',
     locality: 'Test Locality',
-    latitud: 0.0,
-    longitud: 0.0,
     isEmailVerified: true,
     isUserVerified: true,
     emailVerificationToken: null,
@@ -253,8 +251,6 @@ describe('AuthService', () => {
       birthDate: new Date(),
       province: 'TestProvince',
       locality: 'TestLocality',
-      latitud: 10.0,
-      longitud: 20.0,
       phoneNumber: '5491198765432'
     };
     const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
@@ -277,8 +273,6 @@ describe('AuthService', () => {
       birthDate: new Date(),
       province: 'TestProvince',
       locality: 'TestLocality',
-      latitud: 10.0,
-      longitud: 20.0,
       phoneNumber: '5491198765432'
     };
     const fileMock = { buffer: Buffer.from('test') } as Express.Multer.File;
