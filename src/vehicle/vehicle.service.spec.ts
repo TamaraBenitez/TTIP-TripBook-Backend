@@ -5,12 +5,15 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Vehicle } from './entities/vehicle.entity';
 import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { TripUserService } from '../trip-user/trip-user.service';
 
 
 describe('VehicleService', () => {
   let service: VehicleService;
   let userServiceMock: UserService;
   let vehicleRepositoryMock: Repository<Vehicle>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let tripUserService: TripUserService;
 
   beforeEach(async () => {
     userServiceMock = {
@@ -30,10 +33,19 @@ describe('VehicleService', () => {
         VehicleService,
         { provide: UserService, useValue: userServiceMock },
         { provide: getRepositoryToken(Vehicle), useValue: vehicleRepositoryMock },
+        {
+          provide: TripUserService,
+          useValue: {
+            hasVehicleFutureTrips: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<VehicleService>(VehicleService);
+    vehicleRepositoryMock = module.get(getRepositoryToken(Vehicle));
+    userServiceMock = module.get(UserService);
+    tripUserService = module.get(TripUserService);
   });
 
   it('should be defined', () => {
@@ -78,7 +90,7 @@ describe('VehicleService', () => {
       expect.objectContaining({ id: 'vehicle-id-2' }),
     ]));
     expect(vehicleRepositoryMock.find).toHaveBeenCalledWith({
-      where: { owner: { id: ownerId } },
+      where: { owner: { id: ownerId }, isDeleted: false },
       relations: ['owner'],
     });
   });
