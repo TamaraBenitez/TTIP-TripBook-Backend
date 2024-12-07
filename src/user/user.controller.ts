@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { VerifyUserDto } from './dto/verify-user.dto';
 import { AuthGuard } from '../auth/guard/auth.guard';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -26,5 +27,10 @@ export class UserController {
   @Patch('/verify/:id')
   update(@Param('id') id: string, @Body() verifyUserDto: VerifyUserDto) {
     return this.userService.update(id, verifyUserDto);
+  }
+
+  @Patch('/update/:userId')
+  updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(userId, updateUserDto);
   }
 }

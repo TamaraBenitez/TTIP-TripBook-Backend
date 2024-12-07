@@ -508,7 +508,6 @@ export class TripUserService {
     const timeZoneOffset = -3; // Hora estándar para 'America/Argentina/Buenos_Aires' (UTC-3)
     const localDate = new Date(currentDate.getTime() + timeZoneOffset * 60 * 60 * 1000);
 
-    console.log('Fecha Local:', localDate); // Fecha y hora ajustada
 
     const trips = await this.tripUserRepository.find({
       where: {
@@ -520,7 +519,7 @@ export class TripUserService {
       relations: ['trip', 'trip.vehicle'],
     });
 
-    console.log(trips.length > 0)
+
 
     return trips.length > 0;
   }
