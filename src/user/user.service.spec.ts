@@ -34,7 +34,7 @@ describe('UserService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should call save method with correct user data ', async () => {
+  it('should call userRepository save method when calling createUser', async () => {
     const createUserDto: CreateUserDto = {
       name: 'John',
       surname: 'Doe',
@@ -50,7 +50,7 @@ describe('UserService', () => {
     expect(userRepository.save).toHaveBeenCalledWith(createUserDto);
   });
 
-  it('should call findOneBy with correct email and return the user', async () => {
+  it('should call findOneBy with correct email and return the user when calling findOneByEmail', async () => {
     const email = 'test@example.com';
     const userFound: User = {
       id: '1',
@@ -81,7 +81,7 @@ describe('UserService', () => {
     expect(result).toEqual(userFound);
   });
 
-  it('should call findOneBy with correct id and return the user', async () => {
+  it('should call findOneBy with correct id and return the user when calling findOneById', async () => {
     const id = '1';
     const user: User = {
       id,
@@ -114,7 +114,7 @@ describe('UserService', () => {
   });
 
 
-  it('should call findOne with correct token and return the user', async () => {
+  it('should call findOne with correct token and return the user when calling findByVerifyToken', async () => {
     const token = 'verification-token'
     const user: User = {
       id: '1',

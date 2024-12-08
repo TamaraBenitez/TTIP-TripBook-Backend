@@ -24,8 +24,8 @@ describe('TripCoordinateService', () => {
       tripCoordinateRepository = module.get<Repository<TripCoordinate>>(getRepositoryToken(TripCoordinate));
     });
   
-    describe('createTripCoordinate', () => {
-      it('should save a trip coordinate', async () => {
+    describe('createTripCoordinate method', () => {
+      it('should save a trip coordinate when calling createTripCoordinate', async () => {
         const tripCoordinate = new TripCoordinate();
         jest.spyOn(tripCoordinateRepository, 'save').mockResolvedValue(tripCoordinate);
   
@@ -35,8 +35,8 @@ describe('TripCoordinateService', () => {
       });
     });
   
-    describe('getCoordinatesByTripUsers', () => {
-      it('should return coordinates by trip users', async () => {
+    describe('getCoordinatesByTripUsers method', () => {
+      it('should return coordinates by trip users when calling getCoordinatesByTripUsers', async () => {
         const tripUser = new TripUser();
         const coordinate1 = new TripCoordinate();
         const coordinate2 = new TripCoordinate();
@@ -60,7 +60,7 @@ describe('TripCoordinateService', () => {
     });
   
     describe('getStartCoordinateByTripId', () => {
-      it('should return the start coordinate by trip ID', async () => {
+      it('should return the start coordinate by trip ID when calling getStartCoordinateByTripId', async () => {
         const tripId = '123';
         const startCoordinate = new TripCoordinate();
         jest.spyOn(tripCoordinateRepository, 'findOne').mockResolvedValue(startCoordinate);
@@ -72,7 +72,7 @@ describe('TripCoordinateService', () => {
         });
       });
   
-      it('should return null if no start coordinate is found', async () => {
+      it('should return null if no start coordinate is found when calling getStartCoordinateByTripId', async () => {
         const tripId = '123';
         jest.spyOn(tripCoordinateRepository, 'findOne').mockResolvedValue(null);
   

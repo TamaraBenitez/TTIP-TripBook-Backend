@@ -75,17 +75,17 @@ describe('TripController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
-  it('should call TripService findAll', async () => {
+  it('should call TripService findAll when TripController calls findAll', async () => {
     jest.spyOn(tripService.useValue, 'findAll');
     await controller.findAll({});
     expect(tripService.useValue.findAll).toHaveBeenCalled()
   });
-  it('should call TripService findOneById', async () => {
+  it('should call TripService findOneById when TripController calls findOneById', async () => {
     jest.spyOn(tripService.useValue, 'findOneById');
     await controller.findOneById(tripId1);
     expect(tripService.useValue.findOneById).toHaveBeenCalled()
   });
-  it('should call TripService create', async () => {
+  it('should call TripService createTrip when TripController calls create', async () => {
     jest.spyOn(tripService.useValue, 'createTrip');
     await controller.create(testTripDto);
     expect(tripService.useValue.createTrip).toHaveBeenCalled()

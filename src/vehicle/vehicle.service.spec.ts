@@ -54,7 +54,7 @@ describe('VehicleService', () => {
 
 
 
-  it('should throw NotFoundException if vehicle does not exist', async () => {
+  it('should throw NotFoundException if vehicle does not exist when calling findOneById', async () => {
     const vehicleId = 'vehicle-id';
 
 
@@ -70,7 +70,7 @@ describe('VehicleService', () => {
     expect(vehicleRepositoryMock.findOne).toHaveBeenCalledWith({ where: { id: vehicleId } });
   });
 
-  it('should get vehicles by owner', async () => {
+  it('should get vehicles by owner when calling getVehiclesByOwner', async () => {
     const ownerId = 'user-id';
     const vehicles = [
       { id: 'vehicle-id-1', model: 'Car Model 1', color: 'Red', plateNumber: 'ABC123', year: 2020, owner: { id: ownerId } },

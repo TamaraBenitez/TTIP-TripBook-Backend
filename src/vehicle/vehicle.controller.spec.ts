@@ -54,7 +54,7 @@ describe('VehicleController', () => {
     controller = module.get<VehicleController>(VehicleController);
   });
 
-  it('should create a vehicle', async () => {
+  it('should create a vehicle when calling createVehicle', async () => {
     const createVehicleDto: CreateVehicleDto = {
       model: 'Car Model',
       color: 'Red',
@@ -76,7 +76,7 @@ describe('VehicleController', () => {
     expect(vehicleServiceMock.createVehicle).toHaveBeenCalledTimes(1);
   });
 
-  it('should get vehicles by ownerId', async () => {
+  it('should get vehicles by ownerId when calling getVehiclesByOwner', async () => {
     const ownerId = 'user-id';
 
     const result: VehicleResponseDto[] = await controller.getVehiclesByOwner(ownerId);
