@@ -103,7 +103,7 @@ export class TripService {
       (tripUser) => tripUser.status === TripUserStatus.Confirmed
     );
 
-    // Mapear solo los participantes confirmados a DTO
+
     const participants = confirmedTripUsers.map((tripUser) => ({
       id: tripUser.user.id,
       name: tripUser.user.name,
@@ -113,6 +113,7 @@ export class TripService {
       province: tripUser.user.province,
       phoneNumber: tripUser.user.phoneNumber,
       role: tripUser.role,
+      isUserVerified: tripUser.user.isEmailVerified && tripUser.user.isUserVerified
     }));
 
     // Obtenemos las coordenadas de los trip_users confirmados
