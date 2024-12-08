@@ -132,9 +132,9 @@ export class AuthService {
     const mailOptions = {
       from: '"TripBook" <tripbook14@gmail.com>',
       to: user.email,
-      subject: 'Verify your email address',
-      text: `Hello ${user.name},\n\nPlease verify your email by clicking the link: ${verificationUrl}\n\nThank you!`,
-      html: `<p>Hello ${user.name},</p><p>Please verify your email by clicking the link below:</p><a href="${verificationUrl}">Verify Email</a><p>Thank you!</p>`, // HTML body
+      subject: 'Verifica tu direccion de correo electrónico',
+      text: `Hola ${user.name},\n\nPor favor verifica tu correo cliqueando este enlace: ${verificationUrl}\n\nMuchas gracias!`,
+      html: `<p>Hola ${user.name},</p><p>Por favor verifica tu correo cliqueando este enlace:</p><a href="${verificationUrl}">Verificar email</a><p>Muchas gracias!</p>`,
     };
 
     await this.transporter.sendMail(mailOptions, (error, info) => {
@@ -152,7 +152,7 @@ export class AuthService {
     }
     // Check if the token has expired
     if (!user || new Date() > user.emailVerificationTokenExpires) {
-      throw new BadRequestException('Invalid or expired token');
+      throw new BadRequestException('Token invalido o expirado');
     }
 
     const updateDto: UpdateUserEmailVerificationDto = {
