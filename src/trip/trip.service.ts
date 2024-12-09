@@ -24,6 +24,8 @@ import { format } from 'date-fns';
 import { TripFiltersDto } from './dto/filters-trip-dto';
 import { ImgurService } from '../imgur/imgur.service';
 import { VehicleService } from '../vehicle/vehicle.service';
+import { plainToInstance } from 'class-transformer';
+import { VehicleResponseDto } from '../vehicle/dto/vehicle-response.dto';
 
 
 
@@ -93,7 +95,7 @@ export class TripService {
     //Find one trip and return only confirmed tripCoordinates
     const trip = await this.tripRepository.findOne({
       where: { id: id },
-      relations: ['tripUsers', 'tripUsers.user'],
+      relations: ['tripUsers', 'tripUsers.user', 'vehicle'],
     });
 
     if (!trip) {
@@ -113,6 +115,7 @@ export class TripService {
       province: tripUser.user.province,
       phoneNumber: tripUser.user.phoneNumber,
       role: tripUser.role,
+      isUserVerified: tripUser.user.isUserVerified && tripUser.user.isEmailVerified
     }));
 
     // Obtenemos las coordenadas de los trip_users confirmados
@@ -129,7 +132,8 @@ export class TripService {
     tripDetails.maxPassengers = trip.maxPassengers;
     tripDetails.participants = participants;
     tripDetails.tripCoordinates = tripCoordinates.flat();
-    tripDetails.maxTolerableDistance = trip.maxTolerableDistance
+    tripDetails.maxTolerableDistance = trip.maxTolerableDistance;
+    tripDetails.vehicle = plainToInstance(VehicleResponseDto,trip.vehicle);
 
     return tripDetails;
   }

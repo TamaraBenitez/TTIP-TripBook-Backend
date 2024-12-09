@@ -1,5 +1,6 @@
 import { TripCoordinateDetailsDto } from "src/trip-coordinate/dto/trip-coordinate-details.dto";
 import { UserDetailsResponseDto } from "src/user/dto/details-user.dto";
+import { VehicleResponseDto } from "../../vehicle/dto/vehicle-response.dto";
 
 export class TripDetailsResponseDto {
   id: string;
@@ -12,5 +13,6 @@ export class TripDetailsResponseDto {
   maxTolerableDistance: number;
   participants: UserDetailsResponseDto[];
   tripCoordinates: TripCoordinateDetailsDto[];
-  imageUrl?: string
+  imageUrl?: string;
+  vehicle:VehicleResponseDto;
 }
