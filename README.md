@@ -33,7 +33,7 @@ Levanta la base de datos con Docker Compose:
 docker-compose up -d
 ```
 
-Si quieres crear un mock de datos para la base de datos, ejecutar el siguiente comando:
+Si quieres crear un mock de datos para la base de datos, ejecutar el siguiente comando (DEPRECADO, no usar):
 
 ```bash
 ts-node src/script-database.ts
