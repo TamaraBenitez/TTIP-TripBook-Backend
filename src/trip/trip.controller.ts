@@ -31,8 +31,13 @@ export class TripController {
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string): Promise<TripDetailsResponseDto> {
-    return this.tripService.findOneById(id);
+  @ApiQuery({ name: 'isTripUser', type: String, required: false })
+  @ApiQuery({ name: 'tripUserId', type: String, required: false })
+  findOneById(@Param('id') id: string,
+    @Query('isTripUser') isTripUser?: string,
+    @Query('tripUserId') tripUserId?: string,): Promise<TripDetailsResponseDto> {
+    const isTripUserFlag = isTripUser === 'true';
+    return this.tripService.findOneById(id, isTripUserFlag, tripUserId);
   }
 
   @Post()

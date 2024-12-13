@@ -91,7 +91,7 @@ export class TripService {
 
 
 
-  async findOneById(id: string) {
+  async findOneById(id: string, isTripUser = false, tripUserId?: string) {
     //Find one trip and return only confirmed tripCoordinates
     const trip = await this.tripRepository.findOne({
       where: { id: id },
@@ -133,7 +133,23 @@ export class TripService {
     tripDetails.participants = participants;
     tripDetails.tripCoordinates = tripCoordinates.flat();
     tripDetails.maxTolerableDistance = trip.maxTolerableDistance;
-    tripDetails.vehicle = plainToInstance(VehicleResponseDto,trip.vehicle);
+    tripDetails.vehicle = plainToInstance(VehicleResponseDto, trip.vehicle);
+
+    if (isTripUser && tripUserId) {
+      const tripUser = trip.tripUsers.find((tripUser) => tripUser.id === tripUserId);
+
+      if (!tripUser) {
+        throw new BadRequestException('El tripUser especificado no pertenece a este viaje');
+      }
+
+      const tripUserCoordinate = await this.tripCoordinateService.getCoordinatesByTripUsers([tripUser]);
+
+      const flatCoordinates = tripUserCoordinate.flat();
+
+      tripDetails.tripUserCoordinate = flatCoordinates.length > 0 ? flatCoordinates : null;
+      tripDetails.tripUserStatus = tripUser.status;
+    }
+
 
     return tripDetails;
   }
